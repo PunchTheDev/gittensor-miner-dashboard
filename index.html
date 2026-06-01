@@ -18,6 +18,7 @@
       --green: #3fb950;
       --yellow: #d29922;
       --red: #f85149;
+      --purple: #bc8cff;
       --mono: 'JetBrains Mono', 'Fira Mono', monospace;
     }
 
@@ -36,16 +37,8 @@
       gap: 16px;
     }
 
-    header h1 {
-      font-size: 18px;
-      font-weight: 600;
-      color: var(--text);
-    }
-
-    header .subtitle {
-      color: var(--muted);
-      font-size: 13px;
-    }
+    header h1 { font-size: 18px; font-weight: 600; color: var(--text); }
+    header .subtitle { color: var(--muted); font-size: 13px; }
 
     header .badge {
       margin-left: auto;
@@ -92,15 +85,9 @@
       font-family: var(--mono);
     }
 
-    .stat-card .sub {
-      font-size: 11px;
-      color: var(--muted);
-      margin-top: 4px;
-    }
+    .stat-card .sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
 
-    section {
-      margin-bottom: 40px;
-    }
+    section { margin-bottom: 40px; }
 
     section h2 {
       font-size: 15px;
@@ -111,11 +98,7 @@
       padding-bottom: 8px;
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-    }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
 
     thead th {
       text-align: left;
@@ -136,46 +119,16 @@
     tbody tr:hover { background: #1c2128; }
     tbody tr:last-child { border-bottom: none; }
 
-    tbody td {
-      padding: 10px 14px;
-      vertical-align: top;
-    }
+    tbody td { padding: 10px 14px; vertical-align: top; }
 
-    .rank {
-      font-family: var(--mono);
-      font-weight: 700;
-      color: var(--accent);
-    }
+    .rank { font-family: var(--mono); font-weight: 700; color: var(--accent); }
+    .rank-oracle { color: var(--muted); font-style: italic; }
 
-    .rank-oracle {
-      color: var(--muted);
-      font-style: italic;
-    }
+    .score { font-family: var(--mono); font-weight: 600; }
 
-    .score {
-      font-family: var(--mono);
-      font-weight: 600;
-    }
-
-    .score-bar-wrap {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .score-bar {
-      flex: 1;
-      height: 4px;
-      background: #21262d;
-      border-radius: 2px;
-      overflow: hidden;
-    }
-
-    .score-bar-fill {
-      height: 100%;
-      background: var(--accent);
-      border-radius: 2px;
-    }
+    .score-bar-wrap { display: flex; align-items: center; gap: 8px; }
+    .score-bar { flex: 1; height: 4px; background: #21262d; border-radius: 2px; overflow: hidden; }
+    .score-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; }
 
     .badge-model {
       background: #21262d;
@@ -199,11 +152,7 @@
       white-space: nowrap;
     }
 
-    .link {
-      color: var(--accent);
-      text-decoration: none;
-    }
-
+    .link { color: var(--accent); text-decoration: none; }
     .link:hover { text-decoration: underline; }
 
     .muted { color: var(--muted); }
@@ -216,19 +165,9 @@
       text-overflow: ellipsis;
     }
 
-    .repo-breakdown {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
+    .repo-breakdown { display: flex; flex-direction: column; gap: 6px; }
 
-    .repo-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 13px;
-    }
-
+    .repo-row { display: flex; align-items: center; gap: 10px; font-size: 13px; }
     .repo-name { color: var(--accent); font-family: var(--mono); min-width: 220px; }
     .repo-bar-wrap { flex: 1; height: 6px; background: #21262d; border-radius: 3px; overflow: hidden; }
     .repo-bar-fill { height: 100%; background: #388bfd; border-radius: 3px; }
@@ -248,17 +187,12 @@
 
     #problem-search:focus { border-color: var(--accent); }
 
-    .problem-score {
-      font-family: var(--mono);
-      font-size: 12px;
-    }
+    .problem-score { font-family: var(--mono); font-size: 12px; }
 
-    .pending {
-      color: var(--yellow);
-      font-style: italic;
-    }
+    .pending { color: var(--yellow); font-style: italic; }
 
-    #problems-table tbody tr { cursor: default; }
+    #problems-table tbody tr { cursor: pointer; }
+    #problems-table tbody tr.active { background: #1c2128; outline: 1px solid var(--accent); }
 
     .chart-wrap {
       background: var(--surface);
@@ -282,6 +216,210 @@
       color: var(--muted);
       display: flex;
       justify-content: space-between;
+    }
+
+    /* ── Drawer ─────────────────────────────────────────── */
+
+    .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 200;
+      display: none;
+      justify-content: flex-end;
+    }
+
+    .drawer-overlay.open { display: flex; }
+
+    .drawer {
+      width: 700px;
+      max-width: 92vw;
+      height: 100vh;
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      animation: slideIn 0.18s ease-out;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); }
+      to { transform: translateX(0); }
+    }
+
+    .drawer-header {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .drawer-header-text { flex: 1; min-width: 0; }
+
+    .drawer-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.4;
+      margin-bottom: 8px;
+    }
+
+    .drawer-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .drawer-close {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 20px;
+      cursor: pointer;
+      padding: 2px 6px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .drawer-close:hover { color: var(--text); }
+
+    .drawer-body {
+      padding: 20px 24px;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .drawer-section { margin-bottom: 24px; }
+
+    .drawer-section-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    .score-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 8px;
+    }
+
+    .score-chip {
+      background: #0d1117;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 14px;
+    }
+
+    .score-chip .chip-label { font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+    .score-chip .chip-value { font-family: var(--mono); font-size: 16px; font-weight: 600; color: var(--accent); }
+
+    .issue-body {
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.65;
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 280px;
+      overflow-y: auto;
+      background: #0d1117;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 14px 16px;
+    }
+
+    .test-cmd {
+      font-family: var(--mono);
+      font-size: 12px;
+      background: #0d1117;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 16px;
+      color: var(--green);
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: #21262d;
+      color: var(--text);
+      text-decoration: none;
+      transition: background 0.1s, border-color 0.1s;
+    }
+
+    .btn:hover { background: #30363d; border-color: #8b949e; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .btn-primary {
+      background: #1f6feb;
+      border-color: #388bfd;
+      color: #fff;
+    }
+
+    .btn-primary:hover { background: #388bfd; }
+
+    .action-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+
+    /* ── Diff viewer ─────────────────────────────────────── */
+
+    .diff-container {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.5;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+
+    .diff-file-header {
+      background: #21262d;
+      border-bottom: 1px solid var(--border);
+      padding: 6px 12px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+    }
+
+    .diff-line {
+      display: block;
+      padding: 0 12px;
+      white-space: pre;
+      overflow-x: auto;
+    }
+
+    .diff-line.add { background: rgba(63,185,80,0.10); color: #3fb950; }
+    .diff-line.remove { background: rgba(248,81,73,0.10); color: #f85149; }
+    .diff-line.hunk { background: rgba(88,166,255,0.06); color: var(--purple); }
+    .diff-line.meta { color: #636e7b; }
+
+    .diff-loading {
+      padding: 20px;
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+    }
+
+    .diff-error {
+      padding: 16px;
+      color: var(--red);
+      font-size: 13px;
     }
   </style>
 </head>
@@ -357,10 +495,28 @@
   <span id="footer-date"></span>
 </footer>
 
+<!-- Problem detail drawer -->
+<div class="drawer-overlay" id="drawer-overlay">
+  <div class="drawer" id="drawer">
+    <div class="drawer-header">
+      <div class="drawer-header-text">
+        <div class="drawer-title" id="drawer-title"></div>
+        <div class="drawer-meta" id="drawer-meta"></div>
+      </div>
+      <button class="drawer-close" id="drawer-close" title="Close">✕</button>
+    </div>
+    <div class="drawer-body" id="drawer-body"></div>
+  </div>
+</div>
+
 <script>
+let allProblems = [];
+let activeRow = null;
+
 async function load() {
   const res = await fetch('data.json');
   const d = await res.json();
+  allProblems = d.problems;
 
   // Header badge
   document.getElementById('header-badge').textContent =
@@ -418,7 +574,6 @@ async function load() {
     document.getElementById('sota-chart').style.display = 'none';
     document.getElementById('sota-empty').style.display = 'block';
   } else {
-    // Add oracle reference line as constant
     const labels = history.map(h => h.date);
     const scores = history.map(h => h.score);
     const oraclePoints = history.map(() => d.oracle_score);
@@ -453,9 +608,7 @@ async function load() {
         responsive: true,
         interaction: { mode: 'index', intersect: false },
         plugins: {
-          legend: {
-            labels: { color: '#8b949e', font: { size: 12 } },
-          },
+          legend: { labels: { color: '#8b949e', font: { size: 12 } } },
           tooltip: {
             callbacks: {
               afterBody: (items) => {
@@ -506,14 +659,16 @@ async function load() {
   function renderProblems(filter) {
     const pb = document.getElementById('problems-body');
     pb.innerHTML = '';
+    activeRow = null;
     const q = filter.toLowerCase();
     let shown = 0;
-    d.problems.forEach((p, i) => {
+    d.problems.forEach((p) => {
       if (q && !p.title.toLowerCase().includes(q) && !p.repo.toLowerCase().includes(q)) return;
       shown++;
       const mergedDate = p.merged_at ? p.merged_at.slice(0, 10) : '—';
       const dasScore = p.das_score !== null ? p.das_score.toFixed(2) : '—';
       const tr = document.createElement('tr');
+      tr.title = 'Click to view problem details';
       tr.innerHTML = `
         <td class="muted" style="font-family:var(--mono);font-size:11px">${shown}</td>
         <td><span class="repo-tag">${p.repo}</span></td>
@@ -526,18 +681,171 @@ async function load() {
         <td class="problem-score muted">${dasScore}</td>
         <td class="muted" style="font-size:12px;white-space:nowrap">${mergedDate}</td>
       `;
+      tr.addEventListener('click', (e) => {
+        // Don't open drawer when clicking a link
+        if (e.target.tagName === 'A') return;
+        if (activeRow) activeRow.classList.remove('active');
+        tr.classList.add('active');
+        activeRow = tr;
+        openDrawer(p);
+      });
       pb.appendChild(tr);
     });
   }
 
   renderProblems('');
-
-  document.getElementById('problem-search').addEventListener('input', e => {
-    renderProblems(e.target.value);
-  });
+  document.getElementById('problem-search').addEventListener('input', e => renderProblems(e.target.value));
 
   // Footer date
   document.getElementById('footer-date').textContent = `Data updated ${d.generated_at}`;
+}
+
+// ── Drawer ──────────────────────────────────────────────────────────────────
+
+function esc(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function openDrawer(p) {
+  document.getElementById('drawer-title').textContent = p.title || `Problem ${p.id}`;
+
+  // Meta tags
+  const mergedDate = p.merged_at ? p.merged_at.slice(0, 10) : '—';
+  document.getElementById('drawer-meta').innerHTML = `
+    <span class="repo-tag">${esc(p.repo)}</span>
+    ${p.issue_url ? `<a class="link" href="${esc(p.issue_url)}" target="_blank" style="font-size:12px">Issue #${p.issue}</a>` : ''}
+    <a class="link" href="${esc(p.pr_url)}" target="_blank" style="font-size:12px">PR #${p.pr}</a>
+    <span class="muted" style="font-size:12px">merged ${mergedDate}</span>
+  `;
+
+  const body = document.getElementById('drawer-body');
+  body.innerHTML = '';
+
+  // Action buttons
+  const actionRow = document.createElement('div');
+  actionRow.className = 'action-row';
+  actionRow.innerHTML = `
+    <a class="btn" href="${esc(p.pr_url)}" target="_blank">View PR on GitHub ↗</a>
+    ${p.issue_url ? `<a class="btn" href="${esc(p.issue_url)}" target="_blank">View Issue ↗</a>` : ''}
+    <button class="btn btn-primary" id="load-diff-btn">Load Reference Diff</button>
+  `;
+  body.appendChild(actionRow);
+
+  // Score breakdown
+  if (p.das_score !== null) {
+    const scoreSection = document.createElement('div');
+    scoreSection.className = 'drawer-section';
+    scoreSection.innerHTML = `
+      <div class="drawer-section-title">DAS Score Breakdown</div>
+      <div class="score-grid">
+        <div class="score-chip"><div class="chip-label">Total</div><div class="chip-value">${(p.das_score || 0).toFixed(3)}</div></div>
+        <div class="score-chip"><div class="chip-label">Base</div><div class="chip-value">${(p.das_base_score || 0).toFixed(3)}</div></div>
+        <div class="score-chip"><div class="chip-label">Token</div><div class="chip-value">${(p.das_token_score || 0).toFixed(3)}</div></div>
+        <div class="score-chip"><div class="chip-label">Structural</div><div class="chip-value">${(p.das_structural_score || 0).toFixed(3)}</div></div>
+        ${p.das_total_nodes ? `<div class="score-chip"><div class="chip-label">Nodes scored</div><div class="chip-value">${p.das_total_nodes}</div></div>` : ''}
+      </div>
+    `;
+    body.appendChild(scoreSection);
+  }
+
+  // Issue body
+  if (p.issue_body) {
+    const issueSection = document.createElement('div');
+    issueSection.className = 'drawer-section';
+    issueSection.innerHTML = `
+      <div class="drawer-section-title">Issue Description</div>
+      <div class="issue-body">${esc(p.issue_body)}</div>
+    `;
+    body.appendChild(issueSection);
+  }
+
+  // Test command
+  if (p.test_cmd && p.test_cmd.length > 0) {
+    const testSection = document.createElement('div');
+    testSection.className = 'drawer-section';
+    testSection.innerHTML = `
+      <div class="drawer-section-title">Eval Test Command</div>
+      <div class="test-cmd">${esc(p.test_cmd.join(' '))}</div>
+    `;
+    body.appendChild(testSection);
+  }
+
+  // Diff section (lazy load)
+  const diffSection = document.createElement('div');
+  diffSection.className = 'drawer-section';
+  diffSection.id = 'diff-section';
+  body.appendChild(diffSection);
+
+  document.getElementById('load-diff-btn').addEventListener('click', () => loadDiff(p, diffSection));
+
+  document.getElementById('drawer-overlay').classList.add('open');
+}
+
+async function loadDiff(p, container) {
+  const btn = document.getElementById('load-diff-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Loading…'; }
+
+  container.innerHTML = `<div class="drawer-section-title">Reference Diff</div><div class="diff-loading">Fetching diff from GitHub…</div>`;
+
+  const [owner, repo] = p.repo.split('/');
+  const url = `https://api.github.com/repos/${owner}/${repo}/pulls/${p.pr}`;
+
+  try {
+    const res = await fetch(url, { headers: { Accept: 'application/vnd.github.diff' } });
+    if (!res.ok) throw new Error(`GitHub API returned ${res.status}`);
+    const raw = await res.text();
+    container.innerHTML = `<div class="drawer-section-title">Reference Diff</div>` + renderDiff(raw);
+  } catch (err) {
+    container.innerHTML = `
+      <div class="drawer-section-title">Reference Diff</div>
+      <div class="diff-error">Failed to load diff: ${esc(err.message)}.<br>
+        <a class="link" href="${esc(p.pr_url)}/files" target="_blank">View on GitHub ↗</a>
+      </div>
+    `;
+  }
+
+  if (btn) { btn.disabled = false; btn.textContent = 'Reload Diff'; }
+}
+
+function renderDiff(raw) {
+  const lines = raw.split('\n');
+  let html = '<div class="diff-container">';
+  for (const line of lines) {
+    if (line.startsWith('diff --git')) {
+      // Extract filename
+      const m = line.match(/b\/(.+)$/);
+      const filename = m ? m[1] : line;
+      html += `<div class="diff-file-header">${esc(filename)}</div>`;
+    } else if (line.startsWith('@@')) {
+      html += `<span class="diff-line hunk">${esc(line)}</span>`;
+    } else if (line.startsWith('+') && !line.startsWith('+++')) {
+      html += `<span class="diff-line add">${esc(line)}</span>`;
+    } else if (line.startsWith('-') && !line.startsWith('---')) {
+      html += `<span class="diff-line remove">${esc(line)}</span>`;
+    } else if (line.startsWith('---') || line.startsWith('+++') || line.startsWith('index ') || line.startsWith('new file') || line.startsWith('deleted file')) {
+      html += `<span class="diff-line meta">${esc(line)}</span>`;
+    } else {
+      html += `<span class="diff-line">${esc(line)}</span>`;
+    }
+  }
+  html += '</div>';
+  return html;
+}
+
+// Close drawer
+document.getElementById('drawer-close').addEventListener('click', closeDrawer);
+document.getElementById('drawer-overlay').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('drawer-overlay')) closeDrawer();
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDrawer(); });
+
+function closeDrawer() {
+  document.getElementById('drawer-overlay').classList.remove('open');
+  if (activeRow) { activeRow.classList.remove('active'); activeRow = null; }
 }
 
 load().catch(err => {
