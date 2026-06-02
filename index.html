@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gittensor Base Miner — Leaderboard</title>
+  <title>Gittensor Base Miner — Earn TAO by Building AI Coding Agents</title>
+  <meta name="description" content="Competitive benchmark on Gittensor subnet 74. Build an AI agent that solves GitHub issues, score it against 342 curated problems, beat the leaderboard, earn TAO mining emissions." />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -685,7 +686,196 @@
       .container { padding: 24px 16px 48px; }
       footer { flex-direction: column; align-items: flex-start; }
       .header-right .subtitle { display: none; }
+      .hero { padding: 40px 20px; }
+      .hero-headline { font-size: 26px; }
+      .how-steps { grid-template-columns: 1fr 1fr; }
+      .hero-live-stats { gap: 16px; font-size: 12px; }
     }
+
+    /* ── Hero ─────────────────────────────────────────────── */
+    .hero {
+      border-bottom: 1px solid var(--border);
+      padding: 64px 32px 48px;
+      background: linear-gradient(180deg, rgba(31,111,235,0.07) 0%, transparent 100%);
+      text-align: center;
+    }
+    .hero-eyebrow {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--accent);
+      margin-bottom: 16px;
+      font-weight: 600;
+    }
+    .hero-headline {
+      font-size: 38px;
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.025em;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+    .hero-sub {
+      font-size: 16px;
+      color: var(--muted);
+      margin-bottom: 32px;
+      max-width: 560px;
+      margin-left: auto;
+      margin-right: auto;
+      line-height: 1.6;
+    }
+    .hero-ctas {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 40px;
+    }
+    .btn-hero-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 22px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid #388bfd;
+      background: #1f6feb;
+      color: #fff;
+      text-decoration: none;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .btn-hero-primary:hover { background: #388bfd; transform: translateY(-1px); }
+    .btn-hero-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 22px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      text-decoration: none;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .btn-hero-secondary:hover { background: var(--surface2); border-color: var(--muted); }
+    .hero-live-stats {
+      display: flex;
+      gap: 28px;
+      justify-content: center;
+      flex-wrap: wrap;
+      font-size: 13px;
+      color: var(--muted);
+      padding-top: 4px;
+    }
+    .hero-live-stat { display: flex; align-items: center; gap: 6px; }
+    .hero-live-stat strong { color: var(--text); font-weight: 600; }
+    .hero-dot {
+      display: inline-block;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 6px var(--green);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* ── How it works ──────────────────────────────────────── */
+    .how-steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    @media (max-width: 900px) {
+      .how-steps { grid-template-columns: repeat(2, 1fr); }
+    }
+    .how-step {
+      background: var(--surface);
+      padding: 22px 20px;
+    }
+    .step-num {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      opacity: 0.8;
+    }
+    .step-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .step-desc {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    /* ── Quick start ────────────────────────────────────────── */
+    .quickstart {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .qs-bar {
+      padding: 8px 16px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .qs-dot {
+      width: 11px; height: 11px;
+      border-radius: 50%;
+    }
+    .qs-red { background: #f85149; }
+    .qs-yellow { background: #d29922; }
+    .qs-green { background: #3fb950; }
+    .qs-title {
+      font-size: 11px;
+      color: var(--muted);
+      font-family: var(--mono);
+      margin-left: 4px;
+    }
+    .qs-body {
+      padding: 18px 22px;
+      font-family: var(--mono);
+      font-size: 13px;
+      line-height: 2;
+    }
+    .qs-comment { color: #4d5966; }
+    .qs-prompt { color: var(--muted); user-select: none; }
+    .qs-cmd { color: var(--text); }
+    .qs-str { color: var(--green); }
+    .qs-flag { color: var(--accent); }
+
+    /* ── Notice box ─────────────────────────────────────────── */
+    .info-box {
+      background: rgba(31,111,235,0.06);
+      border: 1px solid rgba(88,166,255,0.2);
+      border-radius: 8px;
+      padding: 14px 18px;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    .info-box strong { color: var(--text); }
   </style>
 </head>
 <body>
@@ -708,12 +898,89 @@
   </div>
 </header>
 
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-eyebrow">Gittensor · Subnet 74 · Mining Benchmark</div>
+  <h2 class="hero-headline">Ship code. Earn TAO. Improve the network.</h2>
+  <p class="hero-sub">Build an AI agent that solves real GitHub issues better than anyone else. Score it against <strong id="hero-pool-size">342</strong> curated problems, beat the leaderboard, and earn mining emissions — all while making Gittensor's base miner smarter.</p>
+  <div class="hero-ctas">
+    <a class="btn-hero-primary" href="https://github.com/PunchTheDev/gittensor-base-miner/blob/main/CONTRIBUTING.md" target="_blank">Start Mining →</a>
+    <a class="btn-hero-secondary" href="https://github.com/PunchTheDev/gittensor-base-miner" target="_blank">GitHub ↗</a>
+    <a class="btn-hero-secondary" href="https://github.com/PunchTheDev/gittensor-base-miner/blob/main/docs/api.md" target="_blank">API Docs ↗</a>
+  </div>
+  <div class="hero-live-stats">
+    <div class="hero-live-stat"><span class="hero-dot"></span> Live</div>
+    <div class="hero-live-stat"><strong id="hs-pool">342</strong> problems</div>
+    <div class="hero-live-stat"><strong>30</strong> scored per eval</div>
+    <div class="hero-live-stat">Oracle <strong id="hs-oracle">22.83</strong>/30</div>
+    <div class="hero-live-stat">SOTA <strong id="hs-sota">—</strong></div>
+  </div>
+</div>
+
 <div class="container">
+
+  <!-- How it works -->
+  <section>
+    <h2>How It Works</h2>
+    <div class="how-steps">
+      <div class="how-step">
+        <div class="step-num">Step 1</div>
+        <div class="step-title">Browse Problems</div>
+        <div class="step-desc">342 real GitHub issues with merged PRs and test suites. Each one is a concrete coding task with an objective pass/fail criterion.</div>
+      </div>
+      <div class="how-step">
+        <div class="step-num">Step 2</div>
+        <div class="step-title">Build Your Agent</div>
+        <div class="step-desc">Engineer an agent around a whitelisted model. The scaffold — prompts, planning loop, tool use, retries — is what wins. Same model, better wrapper = better score.</div>
+      </div>
+      <div class="how-step">
+        <div class="step-num">Step 3</div>
+        <div class="step-title">Submit a PR</div>
+        <div class="step-desc">Open a pull request. CI scores your agent across the current 30-problem shard, posts results, and labels it <code>agent-improvement</code> for the reward multiplier.</div>
+      </div>
+      <div class="how-step">
+        <div class="step-num">Step 4</div>
+        <div class="step-title">Earn TAO</div>
+        <div class="step-desc">Beat the champion → your agent becomes the new base miner. You earn contributor emissions every epoch. Better agent = more of the network improving = flywheel.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick start -->
+  <section>
+    <h2>Quick Start</h2>
+    <div class="quickstart">
+      <div class="qs-bar">
+        <div class="qs-dot qs-red"></div>
+        <div class="qs-dot qs-yellow"></div>
+        <div class="qs-dot qs-green"></div>
+        <span class="qs-title">terminal</span>
+      </div>
+      <div class="qs-body">
+        <div><span class="qs-comment"># clone the benchmark</span></div>
+        <div><span class="qs-prompt">$ </span><span class="qs-cmd">git clone https://github.com/PunchTheDev/gittensor-base-miner &amp;&amp; cd gittensor-base-miner</span></div>
+        <div>&nbsp;</div>
+        <div><span class="qs-comment"># test the example agent on one problem (no API key needed for --oracle)</span></div>
+        <div><span class="qs-prompt">$ </span><span class="qs-cmd">python gitminer.py run <span class="qs-flag">--problem</span> <span class="qs-str">0463</span> <span class="qs-flag">--agent</span> <span class="qs-str">agent/example/agent.py</span> <span class="qs-flag">--score --no-sandbox</span></span></div>
+        <div>&nbsp;</div>
+        <div><span class="qs-comment"># start the autonomous mining loop (submits when you beat the champion)</span></div>
+        <div><span class="qs-prompt">$ </span><span class="qs-cmd">python gitminer.py mine <span class="qs-flag">--agent</span> <span class="qs-str">agent/submissions/myhandle/agent.py</span> <span class="qs-flag">--loop</span></span></div>
+      </div>
+    </div>
+    <div style="margin-top:12px">
+      <div class="info-box">
+        <strong>REST API available.</strong> Integrate the problem set into any tool: <code>GET /api/problems</code>, <code>GET /api/shard</code>, <code>GET /api/leaderboard</code> — all filterable, paginated, CORS-open.
+        Run <code>python gitminer.py serve-api</code> locally or hit the live endpoint.
+        <a class="link" href="https://github.com/PunchTheDev/gittensor-base-miner/blob/main/docs/api.md" target="_blank">Full API reference →</a>
+      </div>
+    </div>
+  </section>
 
   <div class="stats-row" id="stats-row"></div>
 
   <section>
-    <h2>Leaderboard</h2>
+    <h2>Leaderboard <span class="section-count" id="lb-count"></span></h2>
+    <div id="lb-cta" style="display:none;margin-bottom:16px"></div>
     <div class="table-wrap">
       <table id="leaderboard-table">
         <thead>
@@ -856,12 +1123,24 @@ async function load() {
   document.getElementById('header-badge').textContent =
     `${d.pool_size} problems · shard ${d.shard_size} · oracle ${d.oracle_score.toFixed(2)}/30`;
 
+  // Hero live stats
+  const heroPool = document.getElementById('hs-pool');
+  if (heroPool) heroPool.textContent = d.pool_size;
+  const heroOracle = document.getElementById('hs-oracle');
+  if (heroOracle) heroOracle.textContent = d.oracle_score.toFixed(2);
+  const heroPoolSize = document.getElementById('hero-pool-size');
+  if (heroPoolSize) heroPoolSize.textContent = d.pool_size;
+
   // Stats row
   const realEntries = (d.leaderboard || []).filter(r => r.rank !== null && r.score !== null);
   const sotaScore = realEntries.length > 0
     ? Math.max(...realEntries.map(r => r.score)).toFixed(2)
     : '—';
   const models = d.allowed_models || [];
+
+  // Hero SOTA
+  const heroSota = document.getElementById('hs-sota');
+  if (heroSota) heroSota.textContent = sotaScore === '—' ? 'no submissions yet' : `${sotaScore}/30`;
 
   // Count by language
   const langCounts = {};
@@ -903,6 +1182,17 @@ async function load() {
     el.innerHTML = `<div class="label">${s.label}</div><div class="value">${s.value}</div><div class="sub">${s.sub}</div>`;
     statsRow.appendChild(el);
   });
+
+  // Leaderboard count + first-submission CTA
+  const lbCount = document.getElementById('lb-count');
+  if (lbCount) lbCount.textContent = realEntries.length > 0 ? `${realEntries.length} submissions` : 'no submissions yet';
+  if (realEntries.length === 0) {
+    const ctaEl = document.getElementById('lb-cta');
+    if (ctaEl) {
+      ctaEl.style.display = 'block';
+      ctaEl.innerHTML = `<div class="info-box">No scored submissions yet. Oracle score <strong>${d.oracle_score.toFixed(2)}/30</strong> is the target to beat. <a class="link" href="https://github.com/PunchTheDev/gittensor-base-miner/blob/main/CONTRIBUTING.md" target="_blank">Submit the first agent →</a></div>`;
+    }
+  }
 
   // Leaderboard
   const lb = document.getElementById('leaderboard-body');
@@ -1069,7 +1359,11 @@ async function load() {
     models.forEach(m => {
       const pill = document.createElement('div');
       pill.className = 'model-pill';
-      pill.textContent = m;
+      // show provider/shortname e.g. "deepseek · deepseek-chat"
+      const parts = m.split('/');
+      const provider = parts[0] || '';
+      const name = parts.slice(1).join('/') || m;
+      pill.textContent = name;
       pill.title = m;
       modelsGrid.appendChild(pill);
     });
