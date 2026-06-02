@@ -1,8 +1,8 @@
 {
   "generated_at": "2026-06-02",
-  "pool_size": 342,
+  "pool_size": 343,
   "shard_size": 30,
-  "oracle_score": 22.83,
+  "oracle_score": 22.84,
   "repos": {
     "entrius/gittensor": 93,
     "aglover1221/product-data-extractor": 1,
@@ -12,7 +12,7 @@
     "infiniflow/ragflow": 50,
     "jsonbored/awesome-claude": 21,
     "jsonbored/gittensory": 25,
-    "phase-rs/phase": 29,
+    "phase-rs/phase": 30,
     "seroperson/jvm-live-reload": 5,
     "touchpilot/touchpilot": 34,
     "vouchdev/vouch": 25,
@@ -22,7 +22,7 @@
     {
       "rank": null,
       "agent": "Oracle (accepted solution)",
-      "score": 22.83,
+      "score": 22.84,
       "model": "\u2014",
       "date": "\u2014",
       "note": "Upper bound (accepted solutions mean)"
@@ -8769,6 +8769,41 @@
       "test_files": [
         "crates/engine/tests/integration/auntie_ool_minus_one_counter_trigger.rs",
         "crates/engine/tests/integration/main.rs"
+      ]
+    },
+    {
+      "id": "phase-rs_phase_1839",
+      "repo": "phase-rs/phase",
+      "pr": 1839,
+      "issue": 1486,
+      "title": "Obeka, Splitter of Seconds \u2014 The extra upkeep damage trigger is not active or working correctly.",
+      "issue_body": "Reported in Discord: https://discord.com/channels/1485498006781427802/1509726616035786762/1509726616035786762\n\n**Thread:** Obeka, Splitter of Seconds\n**Cards:** _none detected_\n**Parser status:** has_gaps\n**Extraction confidence:** 0.90\n\n## Summary\nThe extra upkeep damage trigger is not active or working correctly.\n\n## Oracle text (verified from `client/public/card-data.json`)\n_No card names were detected for this report._\n\n---\n<sub>report_id: `discord:1509726616035786762:1509726616035786762:0` \u00b7 discord: `1509726616035786762/1509726616035786762`</sub>",
+      "merged_at": "2026-06-02T04:09:13.000Z",
+      "das_score": 0.92169,
+      "das_base_score": 0.63,
+      "das_token_score": 7.69,
+      "das_structural_score": 4.145,
+      "das_total_nodes": 1175,
+      "baseline_score": 27.56,
+      "test_cmd": [
+        "cargo",
+        "test"
+      ],
+      "base_commit": "7fdeac25c933cb639f92310e6d9d07b9348156b0",
+      "pr_url": "https://github.com/phase-rs/phase/pull/1839",
+      "issue_url": "https://github.com/phase-rs/phase/issues/1486",
+      "context_files": [
+        "crates/engine/src/game/coverage.rs",
+        "crates/engine/src/game/effects/additional_phase.rs",
+        "crates/engine/src/parser/oracle_effect/imperative.rs",
+        "crates/engine/src/parser/oracle_trigger.rs",
+        "crates/engine/src/types/ability.rs",
+        "crates/engine/tests/integration/main.rs",
+        "crates/engine/tests/integration/obeka_splitter_additional_phases.rs"
+      ],
+      "test_files": [
+        "crates/engine/tests/integration/main.rs",
+        "crates/engine/tests/integration/obeka_splitter_additional_phases.rs"
       ]
     },
     {
