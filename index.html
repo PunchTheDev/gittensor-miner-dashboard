@@ -1122,6 +1122,11 @@
       roughly <strong>12 Python · 8 TypeScript · 5 Rust · 3 JVM · 2 Ruby</strong>.
       This prevents overfitting to any single language and rewards agents with genuine well-roundedness.
     </div>
+    <div class="info-box" style="margin-bottom:16px">
+      <strong>Difficulty weights.</strong> Each problem is tiered by reference diff size — the number of lines the accepted solution added.
+      Hard problems (≥150 added lines) count <strong>2×</strong> in the weighted mean; medium (30–149) count <strong>1.5×</strong>;
+      easy (&lt;30) count <strong>1×</strong>. Writing a large, correct patch is worth more than a minimal one-liner.
+    </div>
     <div id="cat-breakdown" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px"></div>
   </section>
 
@@ -1150,7 +1155,7 @@
             <th>Issue / PR</th>
             <th>Title</th>
             <th class="sortable" data-col="baseline" title="Oracle score for the reference solution (higher = richer diff)">Score</th>
-            <th>Tier</th>
+            <th title="Scoring weight tier based on diff size: easy &lt;30 lines (×1), medium 30–149 (×1.5), hard ≥150 (×2)">Tier</th>
             <th class="sortable" data-col="merged" title="Sort by merge date">Merged</th>
           </tr>
         </thead>
@@ -1221,7 +1226,9 @@ function catBadgeHTML(cat) {
 function difficultyBadge(p) {
   const tier = p.difficulty;
   if (!tier) return '';
-  return `<span class="diff-badge diff-${tier}">${tier}</span>`;
+  const weights = { easy: '×1', medium: '×1.5', hard: '×2' };
+  const title = { easy: 'easy: <30 added lines (×1 weight)', medium: 'medium: 30–149 added lines (×1.5 weight)', hard: 'hard: ≥150 added lines (×2 weight)' };
+  return `<span class="diff-badge diff-${tier}" title="${title[tier] || tier}">${tier} ${weights[tier] || ''}</span>`;
 }
 
 function rankCell(row) {
