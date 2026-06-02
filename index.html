@@ -444,9 +444,23 @@
       flex-shrink: 0;
     }
     .status-dot.open { background: var(--yellow); box-shadow: 0 0 4px var(--yellow); }
+    .status-dot.scored { background: var(--green); box-shadow: 0 0 4px var(--green); }
+    .status-dot.champion { background: var(--accent); box-shadow: 0 0 4px var(--accent); }
 
     .queue-handle { font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--text); }
     .queue-meta { color: var(--muted); font-size: 12px; }
+
+    .pr-label {
+      display: inline-block;
+      padding: 1px 7px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 500;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+    .pr-label.champion { background: rgba(88,166,255,0.15); color: var(--accent); border: 1px solid rgba(88,166,255,0.3); }
+    .pr-label.scored { background: rgba(63,185,80,0.12); color: var(--green); border: 1px solid rgba(63,185,80,0.25); }
 
     /* ── Buttons ─────────────────────────────────────────── */
     .btn {
@@ -1619,11 +1633,25 @@ async function loadQueue() {
     prs.forEach(pr => {
       const handle = pr.user.login;
       const openedDate = pr.created_at ? pr.created_at.slice(0, 10) : '—';
+      const labelNames = (pr.labels || []).map(l => l.name);
+      const isChampion = labelNames.includes('new-champion');
+      const isScored = labelNames.includes('agent-improvement');
+
+      let dotClass = 'open';
+      let statusText = 'Evaluating';
+      if (isChampion) { dotClass = 'champion'; statusText = 'Scored'; }
+      else if (isScored) { dotClass = 'scored'; statusText = 'Scored'; }
+
+      let labelBadges = '';
+      if (isChampion) labelBadges += `<span class="pr-label champion">new champion</span>`;
+      else if (isScored) labelBadges += `<span class="pr-label scored">scored</span>`;
+
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td style="white-space:nowrap">
-          <span class="status-dot open"></span>
-          <span class="queue-meta" style="margin-left:6px">Open</span>
+          <span class="status-dot ${dotClass}"></span>
+          <span class="queue-meta" style="margin-left:6px">${statusText}</span>
+          ${labelBadges}
         </td>
         <td>
           <div class="queue-handle">${esc(handle)}</div>
