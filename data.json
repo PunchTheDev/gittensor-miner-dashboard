@@ -2,7 +2,7 @@
   "generated_at": "2026-06-02",
   "pool_size": 324,
   "shard_size": 30,
-  "oracle_score": 22.79,
+  "oracle_score": 22.77,
   "repos": {
     "entrius/gittensor": 81,
     "aglover1221/product-data-extractor": 1,
