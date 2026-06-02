@@ -2,8 +2,26 @@ services:
   dashboard:
     build: .
     ports:
-      - "8080:80"
+      - "8082:80"
     restart: unless-stopped
     volumes:
       # Mount data.json so it can be updated without rebuilding the image
       - ./data.json:/usr/share/nginx/html/data.json:ro
+
+  api:
+    image: python:3.12-slim
+    working_dir: /app
+    command: python gitminer.py serve-api --host 0.0.0.0 --port 8083
+    ports:
+      - "8083:8083"
+    restart: unless-stopped
+    volumes:
+      # Mount the benchmark repo read-only — API serves its data directly
+      - ../gittensor-base-miner:/app:ro
+    environment:
+      - SHARD_SECRET=${SHARD_SECRET:-}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8083/api/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
