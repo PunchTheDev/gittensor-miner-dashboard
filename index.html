@@ -361,15 +361,40 @@
       font-size: 13px;
       color: var(--text);
       line-height: 1.65;
-      white-space: pre-wrap;
       word-break: break-word;
-      max-height: 280px;
+      max-height: 340px;
       overflow-y: auto;
       background: #0d1117;
       border: 1px solid var(--border);
       border-radius: 6px;
       padding: 14px 16px;
     }
+
+    .issue-body h1, .issue-body h2, .issue-body h3 {
+      font-size: 13px; font-weight: 600; color: var(--text);
+      margin: 14px 0 6px; border-bottom: 1px solid var(--border); padding-bottom: 4px;
+    }
+    .issue-body p { margin: 0 0 8px; }
+    .issue-body code {
+      font-family: var(--mono); font-size: 11px;
+      background: rgba(110,118,129,0.12); border-radius: 3px; padding: 1px 5px;
+      color: #e3b341;
+    }
+    .issue-body pre {
+      background: #161b22; border: 1px solid var(--border); border-radius: 6px;
+      padding: 12px 14px; overflow-x: auto; margin: 8px 0;
+    }
+    .issue-body pre code {
+      background: none; padding: 0; color: #c9d1d9; font-size: 11px;
+    }
+    .issue-body ul, .issue-body ol { padding-left: 20px; margin: 4px 0 8px; }
+    .issue-body li { margin-bottom: 3px; }
+    .issue-body a { color: var(--accent); text-decoration: none; }
+    .issue-body a:hover { text-decoration: underline; }
+    .issue-body blockquote {
+      border-left: 3px solid var(--border); margin: 8px 0; padding-left: 12px; color: var(--muted);
+    }
+    .issue-body strong { font-weight: 600; color: var(--text); }
 
     .test-cmd {
       font-family: var(--mono);
@@ -919,6 +944,136 @@ function esc(s) {
     .replace(/"/g, '&quot;');
 }
 
+// Minimal safe markdown → HTML renderer (no external deps, no XSS).
+// Handles: fenced code blocks, inline code, headings, bold, italic, links, lists, blockquotes.
+function renderMarkdown(src) {
+  const lines = src.split('\n');
+  let html = '';
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+
+    // Fenced code block
+    const fenceMatch = line.match(/^```(\w*)/);
+    if (fenceMatch) {
+      const lang = fenceMatch[1];
+      let code = '';
+      i++;
+      while (i < lines.length && !lines[i].startsWith('```')) {
+        code += esc(lines[i]) + '\n';
+        i++;
+      }
+      html += `<pre><code${lang ? ` class="language-${esc(lang)}"` : ''}>${code}</code></pre>\n`;
+      i++;
+      continue;
+    }
+
+    // Heading
+    const hMatch = line.match(/^(#{1,3})\s+(.*)/);
+    if (hMatch) {
+      const level = Math.min(hMatch[1].length, 3);
+      html += `<h${level}>${inlineMd(hMatch[2])}</h${level}>\n`;
+      i++; continue;
+    }
+
+    // Blockquote
+    if (line.startsWith('> ')) {
+      html += `<blockquote>${inlineMd(line.slice(2))}</blockquote>\n`;
+      i++; continue;
+    }
+
+    // Unordered list item
+    const ulMatch = line.match(/^[-*+]\s+(.*)/);
+    if (ulMatch) {
+      html += `<ul>`;
+      while (i < lines.length && lines[i].match(/^[-*+]\s+(.*)/)) {
+        html += `<li>${inlineMd(lines[i].match(/^[-*+]\s+(.*)/)[1])}</li>`;
+        i++;
+      }
+      html += `</ul>\n`;
+      continue;
+    }
+
+    // Ordered list item
+    const olMatch = line.match(/^\d+\.\s+(.*)/);
+    if (olMatch) {
+      html += `<ol>`;
+      while (i < lines.length && lines[i].match(/^\d+\.\s+(.*)/)) {
+        html += `<li>${inlineMd(lines[i].match(/^\d+\.\s+(.*)/)[1])}</li>`;
+        i++;
+      }
+      html += `</ol>\n`;
+      continue;
+    }
+
+    // Blank line
+    if (line.trim() === '') {
+      i++; continue;
+    }
+
+    // Paragraph
+    html += `<p>${inlineMd(line)}</p>\n`;
+    i++;
+  }
+  return html;
+}
+
+function inlineMd(s) {
+  // Escape first, then selectively un-escape for our patterns.
+  // Process in order: inline code, bold, italic, links.
+  // We work on the raw string and escape as we go.
+  let out = '';
+  let j = 0;
+  while (j < s.length) {
+    // Inline code
+    if (s[j] === '`') {
+      const end = s.indexOf('`', j + 1);
+      if (end !== -1) {
+        out += `<code>${esc(s.slice(j + 1, end))}</code>`;
+        j = end + 1; continue;
+      }
+    }
+    // Bold **...**
+    if (s.slice(j, j+2) === '**') {
+      const end = s.indexOf('**', j + 2);
+      if (end !== -1) {
+        out += `<strong>${esc(s.slice(j + 2, end))}</strong>`;
+        j = end + 2; continue;
+      }
+    }
+    // Italic *...*
+    if (s[j] === '*') {
+      const end = s.indexOf('*', j + 1);
+      if (end !== -1) {
+        out += `<em>${esc(s.slice(j + 1, end))}</em>`;
+        j = end + 1; continue;
+      }
+    }
+    // Link [text](url)
+    if (s[j] === '[') {
+      const textEnd = s.indexOf(']', j);
+      if (textEnd !== -1 && s[textEnd + 1] === '(') {
+        const urlEnd = s.indexOf(')', textEnd + 2);
+        if (urlEnd !== -1) {
+          const text = s.slice(j + 1, textEnd);
+          const url = s.slice(textEnd + 2, urlEnd);
+          // Only allow http/https links
+          if (/^https?:\/\//.test(url)) {
+            out += `<a href="${esc(url)}" target="_blank">${esc(text)}</a>`;
+          } else {
+            out += esc(s.slice(j, urlEnd + 1));
+          }
+          j = urlEnd + 1; continue;
+        }
+      }
+    }
+    out += esc(s[j]);
+    j++;
+  }
+  return out;
+}
+
 function openDrawer(p) {
   const pl = probLang(p);
   document.getElementById('drawer-title').innerHTML =
@@ -978,7 +1133,7 @@ function openDrawer(p) {
     issueSection.className = 'drawer-section';
     issueSection.innerHTML = `
       <div class="drawer-section-title">Issue Description</div>
-      <div class="issue-body">${esc(p.issue_body)}</div>
+      <div class="issue-body">${renderMarkdown(p.issue_body)}</div>
     `;
     body.appendChild(issueSection);
   }
