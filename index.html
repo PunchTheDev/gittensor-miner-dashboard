@@ -942,7 +942,6 @@ function openDrawer(p) {
   actionRow.innerHTML = `
     <a class="btn" href="${esc(p.pr_url)}" target="_blank">View PR on GitHub ↗</a>
     ${p.issue_url ? `<a class="btn" href="${esc(p.issue_url)}" target="_blank">View Issue ↗</a>` : ''}
-    <button class="btn btn-primary" id="load-diff-btn">Load Reference Diff</button>
   `;
   body.appendChild(actionRow);
 
@@ -1001,35 +1000,29 @@ function openDrawer(p) {
   diffSection.id = 'diff-section';
   body.appendChild(diffSection);
 
-  document.getElementById('load-diff-btn').addEventListener('click', () => loadDiff(p, diffSection));
+  loadDiff(p, diffSection);
 
   document.getElementById('drawer-overlay').classList.add('open');
 }
 
 async function loadDiff(p, container) {
-  const btn = document.getElementById('load-diff-btn');
-  if (btn) { btn.disabled = true; btn.textContent = 'Loading…'; }
+  container.innerHTML = `<div class="drawer-section-title">Reference Diff</div><div class="diff-loading">Loading…</div>`;
 
-  container.innerHTML = `<div class="drawer-section-title">Reference Diff</div><div class="diff-loading">Fetching diff from GitHub…</div>`;
-
-  const [owner, repo] = p.repo.split('/');
-  const url = `https://api.github.com/repos/${owner}/${repo}/pulls/${p.pr}`;
+  const url = `https://raw.githubusercontent.com/PunchTheDev/gittensor-base-miner/main/benchmark/problems/${encodeURIComponent(p.id)}/reference.diff`;
 
   try {
-    const res = await fetch(url, { headers: { Accept: 'application/vnd.github.diff' } });
-    if (!res.ok) throw new Error(`GitHub API returned ${res.status}`);
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`${res.status}`);
     const raw = await res.text();
     container.innerHTML = `<div class="drawer-section-title">Reference Diff</div>` + renderDiff(raw);
   } catch (err) {
     container.innerHTML = `
       <div class="drawer-section-title">Reference Diff</div>
-      <div class="diff-error">Failed to load diff: ${esc(err.message)}.<br>
+      <div class="diff-error">Could not load diff (${esc(err.message)}).
         <a class="link" href="${esc(p.pr_url)}/files" target="_blank">View on GitHub ↗</a>
       </div>
     `;
   }
-
-  if (btn) { btn.disabled = false; btn.textContent = 'Reload Diff'; }
 }
 
 function renderDiff(raw) {
