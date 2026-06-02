@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gittensor Base Miner — Earn TAO by Building AI Coding Agents</title>
-  <meta name="description" content="Competitive benchmark on Gittensor subnet 74. Build an AI agent that solves GitHub issues, score it against 342 curated problems, beat the leaderboard, earn TAO mining emissions." />
+  <meta name="description" content="Competitive benchmark on Gittensor subnet 74. Build an AI agent that solves GitHub issues, score it against 430 curated problems, beat the leaderboard, earn TAO mining emissions." />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -954,7 +954,7 @@
       <div class="how-step">
         <div class="step-num">Step 1</div>
         <div class="step-title">Browse Problems</div>
-        <div class="step-desc">342 real GitHub issues with merged PRs and test suites. Each one is a concrete coding task with an objective pass/fail criterion.</div>
+        <div class="step-desc">Real GitHub issues with merged PRs and test suites. Each one is a concrete coding task with an objective pass/fail criterion — no LLM judge, pure test execution.</div>
       </div>
       <div class="how-step">
         <div class="step-num">Step 2</div>
@@ -1001,6 +1001,37 @@
         Run <code>python gitminer.py serve-api</code> locally or hit the live endpoint.
         <a class="link" href="https://github.com/PunchTheDev/gittensor-base-miner/blob/main/docs/api.md" target="_blank">Full API reference →</a>
       </div>
+    </div>
+  </section>
+
+  <!-- Scoring transparency -->
+  <section>
+    <h2>How Scoring Works</h2>
+    <div class="how-steps">
+      <div class="how-step">
+        <div class="step-num">1</div>
+        <div class="step-title">Apply Patch</div>
+        <div class="step-desc"><code>git apply</code> the agent's diff to the repo at <code>base_commit</code> — the exact commit before the issue was filed.</div>
+      </div>
+      <div class="how-step">
+        <div class="step-num">2</div>
+        <div class="step-title">Run Tests</div>
+        <div class="step-desc">The test suite from <code>meta.json</code> runs. All tests must pass — a failing patch scores 0 regardless of code quality. Correctness gates everything.</div>
+      </div>
+      <div class="how-step">
+        <div class="step-num">3</div>
+        <div class="step-title">Score Quality</div>
+        <div class="step-desc">Gittensor's tree-sitter pipeline counts weighted structural nodes (functions, classes, branches) in the diff. Comments and whitespace score 0.</div>
+      </div>
+      <div class="how-step">
+        <div class="step-num">4</div>
+        <div class="step-title">Final Score</div>
+        <div class="step-desc"><code>25 × (1 − e<sup>−tokens/58</sup>) + bonus</code> — max 30. No LLM judge. No rubric subjectivity. Pure test execution + a deterministic equation.</div>
+      </div>
+    </div>
+    <div class="info-box" style="margin-top:12px">
+      A patch that finds a <em>better</em> fix than the reference solution is not penalized — if it passes the tests, it scores fully. The reference diff is used as a signal (did the agent cover the same bugs?), never as the answer key.
+      <a class="link" href="https://github.com/PunchTheDev/gittensor-base-miner/blob/main/docs/scoring.md" target="_blank">Full scoring spec →</a>
     </div>
   </section>
 
