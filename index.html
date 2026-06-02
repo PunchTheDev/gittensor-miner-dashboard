@@ -860,19 +860,28 @@ function openDrawer(p) {
   body.appendChild(actionRow);
 
   // Score breakdown
-  if (p.das_score !== null) {
+  const hasBaseline = p.baseline_score !== null && p.baseline_score !== undefined;
+  const hasDas = p.das_score !== null && p.das_score !== undefined;
+  if (hasBaseline || hasDas) {
     const scoreSection = document.createElement('div');
     scoreSection.className = 'drawer-section';
-    scoreSection.innerHTML = `
-      <div class="drawer-section-title">DAS Reference Scores</div>
-      <div class="score-grid">
-        <div class="score-chip"><div class="chip-label">Match (0–1)</div><div class="chip-value">${(p.das_score || 0).toFixed(3)}</div></div>
-        <div class="score-chip"><div class="chip-label">Base</div><div class="chip-value">${(p.das_base_score || 0).toFixed(2)}</div></div>
-        <div class="score-chip"><div class="chip-label">Token</div><div class="chip-value">${(p.das_token_score || 0).toFixed(2)}</div></div>
-        <div class="score-chip"><div class="chip-label">Structural</div><div class="chip-value">${(p.das_structural_score || 0).toFixed(2)}</div></div>
+    const baselineChip = hasBaseline
+      ? `<div class="score-chip"><div class="chip-label">Baseline (0–30)</div><div class="chip-value">${p.baseline_score.toFixed(2)}</div></div>`
+      : '';
+    const dasChips = hasDas ? `
+        <div class="score-chip"><div class="chip-label">DAS match (0–1)</div><div class="chip-value">${(p.das_score || 0).toFixed(3)}</div></div>
+        <div class="score-chip"><div class="chip-label">DAS base</div><div class="chip-value">${(p.das_base_score || 0).toFixed(2)}</div></div>
+        <div class="score-chip"><div class="chip-label">DAS token</div><div class="chip-value">${(p.das_token_score || 0).toFixed(2)}</div></div>
+        <div class="score-chip"><div class="chip-label">DAS structural</div><div class="chip-value">${(p.das_structural_score || 0).toFixed(2)}</div></div>
         ${p.das_total_nodes ? `<div class="score-chip"><div class="chip-label">Nodes scored</div><div class="chip-value">${p.das_total_nodes}</div></div>` : ''}
+    ` : '';
+    scoreSection.innerHTML = `
+      <div class="drawer-section-title">Reference Scores (accepted solution)</div>
+      <div class="score-grid">
+        ${baselineChip}
+        ${dasChips}
       </div>
-      <div style="margin-top:8px;font-size:11px;color:var(--muted);">Reference scores from Gittensor's DAS API (accepted solution). Local harness estimates run ~3× higher — authoritative scores come from CI (tree-sitter pipeline).</div>
+      <div style="margin-top:8px;font-size:11px;color:var(--muted);">Baseline: local heuristic scorer on the accepted diff (0–30 scale). DAS: Gittensor DAS API raw components. Both are estimates — authoritative scores come from CI tree-sitter pipeline.</div>
     `;
     body.appendChild(scoreSection);
   }
