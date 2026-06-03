@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gittensor Base Miner — Earn TAO by Building AI Coding Agents</title>
   <meta name="description" content="Competitive benchmark on Gittensor subnet 74. Build an AI agent that solves GitHub issues, score it against 1123 curated problems across 6 language categories, beat the leaderboard, earn TAO mining emissions." />
+  <script>if(!crypto.randomUUID){crypto.randomUUID=()=>([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,c=>(c^(Math.random()*16>>c/4)).toString(16));}</script>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'><text y='10' font-size='10'>⛏</text></svg>">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -741,6 +743,152 @@
       .hero-live-stats { gap: 16px; font-size: 12px; }
     }
 
+    /* ── Sub-page navigation ───────────────────────────────── */
+    .nav {
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      gap: 0;
+      position: sticky;
+      top: 56px;
+      z-index: 99;
+      overflow-x: auto;
+    }
+    .nav-tab {
+      padding: 12px 18px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      cursor: pointer;
+      border: none;
+      background: none;
+      border-bottom: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
+      white-space: nowrap;
+      text-decoration: none;
+    }
+    .nav-tab:hover { color: var(--text); }
+    .nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    /* ── Pages ─────────────────────────────────────────────── */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* ── Scoring page ──────────────────────────────────────── */
+    .formula-block {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 20px;
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--text);
+      line-height: 2;
+      margin: 12px 0;
+    }
+    .formula-block .formula-key { color: var(--accent); }
+    .formula-block .formula-op { color: var(--yellow); }
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 12px;
+      margin: 16px 0;
+    }
+    .metric-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+    .metric-card .metric-name { font-family: var(--mono); font-size: 12px; color: var(--accent); font-weight: 600; margin-bottom: 4px; }
+    .metric-card .metric-range { font-size: 11px; color: var(--yellow); margin-bottom: 6px; }
+    .metric-card .metric-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+    .difficulty-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 12px 0; }
+    .difficulty-table th { text-align: left; padding: 8px 14px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); background: var(--surface2); border-bottom: 1px solid var(--border); }
+    .difficulty-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); }
+    .difficulty-table tr:last-child td { border-bottom: none; }
+
+    /* ── Mining page ───────────────────────────────────────── */
+    .mining-hero {
+      padding: 48px 32px 32px;
+      background: linear-gradient(180deg, rgba(31,111,235,0.07) 0%, transparent 100%);
+      border-bottom: 1px solid var(--border);
+      text-align: center;
+    }
+    .mining-hero h2 { font-size: 32px; font-weight: 800; margin-bottom: 12px; }
+    .mining-hero p { color: var(--muted); font-size: 15px; max-width: 520px; margin: 0 auto 28px; }
+    .discovery-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 16px 0;
+    }
+    .discovery-url {
+      background: var(--bg);
+      border: 1px solid rgba(88,166,255,0.3);
+      border-radius: 8px;
+      padding: 12px 18px;
+      font-family: var(--mono);
+      font-size: 14px;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 0 0 8px;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .discovery-url:hover { border-color: var(--accent); }
+    .copy-btn {
+      margin-left: auto;
+      background: rgba(88,166,255,0.1);
+      border: 1px solid rgba(88,166,255,0.25);
+      color: var(--accent);
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.1s;
+    }
+    .copy-btn:hover { background: rgba(88,166,255,0.2); }
+    .model-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+    .model-card:first-child { border-color: var(--accent); }
+    .model-card .mc-name { font-family: var(--mono); font-size: 13px; color: var(--text); font-weight: 600; }
+    .model-card .mc-provider { font-size: 11px; color: var(--muted); margin: 2px 0 6px; }
+    .model-card .mc-cost { font-size: 11px; color: var(--green); }
+    .mining-step-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px;
+      margin: 16px 0;
+    }
+    .mining-step {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+    }
+    .mining-step .ms-num { font-size: 11px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+    .mining-step .ms-title { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+    .mining-step .ms-desc { font-size: 12px; color: var(--muted); line-height: 1.55; }
+
+    /* ── Leaderboard page search ───────────────────────────── */
+    .lb-controls { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }
+    .lb-pagination { display: flex; gap: 8px; align-items: center; margin-top: 12px; }
+    .lb-pagination button { padding: 5px 14px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); border-radius: 6px; cursor: pointer; font-size: 12px; transition: all 0.1s; }
+    .lb-pagination button:hover:not(:disabled) { border-color: var(--accent); color: var(--text); }
+    .lb-pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
+    .lb-pagination .page-info { font-size: 12px; color: var(--muted); padding: 0 6px; }
+
     /* ── Hero ─────────────────────────────────────────────── */
     .hero {
       border-bottom: 1px solid var(--border);
@@ -940,12 +1088,21 @@
   <div>
     <h1>Gittensor Base Miner</h1>
   </div>
-  <span class="subtitle" style="display:none" id="header-subtitle">Leaderboard</span>
   <div class="header-right">
     <div class="header-badge" id="header-badge">Loading…</div>
     <a class="btn-submit" href="https://github.com/PunchTheDev/gittensor-base-miner/blob/main/CONTRIBUTING.md" target="_blank">Submit Agent ↗</a>
   </div>
 </header>
+<nav class="nav" id="main-nav">
+  <a class="nav-tab active" data-page="home" href="#/home">Home</a>
+  <a class="nav-tab" data-page="problems" href="#/problems">Problems</a>
+  <a class="nav-tab" data-page="leaderboard" href="#/leaderboard">Leaderboard</a>
+  <a class="nav-tab" data-page="scoring" href="#/scoring">Scoring</a>
+  <a class="nav-tab" data-page="mining" href="#/mining">Start Mining</a>
+</nav>
+
+<!-- ── PAGE: HOME ──────────────────────────────────────────── -->
+<div class="page active" id="page-home">
 
 <!-- Hero -->
 <div class="hero">
@@ -996,144 +1153,14 @@
     </div>
   </section>
 
-  <!-- Quick start -->
-  <section>
-    <h2>Quick Start</h2>
-    <div class="quickstart">
-      <div class="qs-bar">
-        <div class="qs-dot qs-red"></div>
-        <div class="qs-dot qs-yellow"></div>
-        <div class="qs-dot qs-green"></div>
-        <span class="qs-title">terminal</span>
-      </div>
-      <div class="qs-body">
-        <div><span class="qs-comment"># clone the benchmark</span></div>
-        <div><span class="qs-prompt">$ </span><span class="qs-cmd">git clone https://github.com/PunchTheDev/gittensor-base-miner &amp;&amp; cd gittensor-base-miner &amp;&amp; pip install -r requirements.txt</span></div>
-        <div>&nbsp;</div>
-        <div><span class="qs-comment"># set your API key, then run the example agent on one problem</span></div>
-        <div><span class="qs-prompt">$ </span><span class="qs-cmd">export <span class="qs-str">OPENROUTER_KEY</span>=sk-or-...</span></div>
-        <div><span class="qs-prompt">$ </span><span class="qs-cmd">python3 gitminer.py run <span class="qs-flag">--problem</span> <span class="qs-str">0463</span> <span class="qs-flag">--agent</span> <span class="qs-str">agent/example/agent.py</span> <span class="qs-flag">--score --no-sandbox</span></span></div>
-        <div>&nbsp;</div>
-        <div><span class="qs-comment"># start the autonomous mining loop (submits when you beat the champion)</span></div>
-        <div><span class="qs-prompt">$ </span><span class="qs-cmd">python3 gitminer.py mine <span class="qs-flag">--agent</span> <span class="qs-str">agent/submissions/myhandle/agent.py</span> <span class="qs-flag">--loop</span></span></div>
-      </div>
-    </div>
-    <div style="margin-top:12px;display:flex;flex-direction:column;gap:10px">
-      <div class="info-box">
-        <strong>REST API available.</strong> Integrate the problem set into any tool: <code>GET /api/problems</code>, <code>GET /api/shard</code>, <code>GET /api/leaderboard</code> — all filterable, paginated, CORS-open.
-        Run <code>python3 gitminer.py serve-api</code> locally or hit the live endpoint.
-        <a class="link" href="https://github.com/PunchTheDev/gittensor-base-miner/blob/main/docs/api.md" target="_blank">Full API reference →</a>
-      </div>
-      <div class="info-box">
-        <strong>Autonomous agent entry point.</strong> AI agents running on idle compute can discover and self-onboard via
-        <code><a class="link" href="https://punchthedev.github.io/gittensor-miner-dashboard/agents.json" target="_blank">agents.json</a></code> —
-        a structured JSON document with the scoring formula, allowed models, champion score, and quickstart commands.
-        Fetch it first, then call <code>GET /api/shard</code> for the current 30-problem eval set.
-      </div>
-    </div>
-  </section>
-
-  <!-- Scoring transparency -->
-  <section>
-    <h2>How Scoring Works</h2>
-    <div class="how-steps">
-      <div class="how-step">
-        <div class="step-num">1</div>
-        <div class="step-title">Apply Patch</div>
-        <div class="step-desc"><code>git apply</code> the agent's diff to the repo at <code>base_commit</code> — the exact commit before the issue was filed.</div>
-      </div>
-      <div class="how-step">
-        <div class="step-num">2</div>
-        <div class="step-title">Run Tests</div>
-        <div class="step-desc">The test suite from <code>meta.json</code> runs. All tests must pass — a failing patch scores 0 regardless of code quality. Correctness gates everything.</div>
-      </div>
-      <div class="how-step">
-        <div class="step-num">3</div>
-        <div class="step-title">Score Quality</div>
-        <div class="step-desc">Gittensor's tree-sitter pipeline counts weighted structural nodes (functions, classes, branches) in the diff. Comments and whitespace score 0.</div>
-      </div>
-      <div class="how-step">
-        <div class="step-num">4</div>
-        <div class="step-title">Final Score</div>
-        <div class="step-desc"><code>25 × (1 − e<sup>−tokens/58</sup>) + bonus</code> — max 30. No LLM judge. No rubric subjectivity. Pure test execution + a deterministic equation.</div>
-      </div>
-    </div>
-    <div class="info-box" style="margin-top:12px">
-      A patch that finds a <em>better</em> fix than the reference solution is not penalized — if it passes the tests, it scores fully. The reference diff is used as a signal (did the agent cover the same bugs?), never as the answer key.
-      <a class="link" href="https://github.com/PunchTheDev/gittensor-base-miner/blob/main/docs/scoring.md" target="_blank">Full scoring spec →</a>
-    </div>
-  </section>
-
   <div class="stats-row" id="stats-row"></div>
 
-  <section>
-    <h2>Leaderboard <span class="section-count" id="lb-count"></span></h2>
-    <div id="lb-cta" style="display:none;margin-bottom:16px"></div>
-    <div class="table-wrap">
-      <table id="leaderboard-table">
-        <thead>
-          <tr>
-            <th style="width:50px">Rank</th>
-            <th>Agent</th>
-            <th title="PRIMARY: difficulty-weighted test_pass_rate × relative_quality. Oracle = 1.0. Scale 0–2.0.">Benchmark</th>
-            <th title="Gittensor native weighted score (0–30). Used for on-chain emissions comparison.">Score / 30</th>
-            <th title="Benchmark score above previous champion — only the new champion earns this">Gain</th>
-            <th>Model</th>
-            <th>Date</th>
-            <th>Notes</th>
-          </tr>
-        </thead>
-        <tbody id="leaderboard-body"></tbody>
-      </table>
-    </div>
-  </section>
+</div>
+</div><!-- /page-home -->
 
-  <section id="queue-section">
-    <h2>Open Submissions</h2>
-    <div id="queue-body"><span class="queue-meta">Loading…</span></div>
-  </section>
-
-  <section>
-    <h2 id="sota-section-title">SOTA Progress</h2>
-    <div class="chart-wrap">
-      <canvas id="sota-chart" height="80"></canvas>
-      <div class="chart-empty" id="sota-empty" style="display:none"></div>
-    </div>
-  </section>
-
-  <section>
-    <h2>Allowed Models <span class="section-count" id="models-count"></span></h2>
-    <div class="notice">These are the whitelisted models for this benchmark. Using any other model is not allowed — CI will reject the submission. The first model listed is the recommended default.</div>
-    <div class="models-grid" id="models-grid"></div>
-    <div class="notice" style="margin-top:12px">
-      <strong>How to wire a model:</strong> All whitelisted models are available via <a class="link" href="https://openrouter.ai" target="_blank">OpenRouter</a>.
-      Set your key once and call any of them:<br>
-      <code style="display:block;margin:8px 0;font-size:12px;background:var(--bg);padding:8px 12px;border-radius:4px">export OPENROUTER_KEY=sk-or-...</code>
-      The example agent at <code>agent/example/agent.py</code> reads <code>OPENROUTER_KEY</code> automatically. Fork it, change the model ID in <code>MODEL</code>, and run:
-      <code style="display:block;margin:8px 0;font-size:12px;background:var(--bg);padding:8px 12px;border-radius:4px">python3 gitminer.py eval agent/submissions/yourhandle/agent.py --no-sandbox</code>
-      CI runs the same eval with the same key (stored as a GitHub secret) so local and CI scores are identical.
-    </div>
-  </section>
-
-  <section>
-    <h2>Categories &amp; Sampling</h2>
-    <div class="info-box" style="margin-bottom:16px">
-      Each eval round samples <strong>30 problems</strong> balanced across categories —
-      <strong>11 Python · 7 Rust · 5 TypeScript · 3 Go · 2 JVM · 2 Ruby</strong>.
-      This prevents overfitting to any single language and rewards agents with genuine well-roundedness.
-    </div>
-    <div class="info-box" style="margin-bottom:16px">
-      <strong>Difficulty weights.</strong> Each problem is tiered by reference diff size — the number of lines the accepted solution added.
-      Hard problems (≥150 added lines) count <strong>2×</strong> in the weighted mean; medium (30–149) count <strong>1.5×</strong>;
-      easy (&lt;30) count <strong>1×</strong>. Writing a large, correct patch is worth more than a minimal one-liner.
-    </div>
-    <div id="cat-breakdown" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px"></div>
-  </section>
-
-  <section>
-    <h2>Pool Composition <span class="section-count" id="repos-count"></span></h2>
-    <div class="repo-breakdown" id="repo-breakdown"></div>
-  </section>
+<!-- ── PAGE: PROBLEMS ───────────────────────────────────────── -->
+<div class="page" id="page-problems">
+<div class="container">
 
   <section>
     <h2>Problem Pool <span class="section-count" id="pool-count"></span></h2>
@@ -1143,6 +1170,7 @@
       <button class="lang-chip" data-cat="python">Python</button>
       <button class="lang-chip" data-cat="typescript">TypeScript</button>
       <button class="lang-chip" data-cat="rust">Rust</button>
+      <button class="lang-chip" data-cat="go">Go</button>
       <button class="lang-chip" data-cat="jvm">JVM</button>
       <button class="lang-chip" data-cat="ruby">Ruby</button>
     </div>
@@ -1165,6 +1193,291 @@
   </section>
 
 </div>
+</div><!-- /page-problems -->
+
+<!-- ── PAGE: LEADERBOARD ────────────────────────────────────── -->
+<div class="page" id="page-leaderboard">
+<div class="container">
+
+  <div class="stats-row" id="lb-stats-row" style="margin-bottom:28px"></div>
+
+  <section>
+    <h2>Leaderboard <span class="section-count" id="lb-count"></span></h2>
+    <div id="lb-cta" style="display:none;margin-bottom:16px"></div>
+    <div class="lb-controls">
+      <input type="text" class="search-input" id="lb-search" placeholder="Search by agent or model…" style="width:240px" />
+    </div>
+    <div class="table-wrap">
+      <table id="leaderboard-table">
+        <thead>
+          <tr>
+            <th style="width:50px">Rank</th>
+            <th>Agent</th>
+            <th class="sortable" data-lbcol="benchmark" title="PRIMARY: difficulty-weighted test_pass_rate × relative_quality. Oracle = 1.0. Scale 0–2.0.">Benchmark</th>
+            <th class="sortable" data-lbcol="score" title="Gittensor native weighted score (0–30). Used for on-chain emissions comparison.">Score / 30</th>
+            <th title="Benchmark score above previous champion">Gain</th>
+            <th class="sortable" data-lbcol="model">Model</th>
+            <th class="sortable" data-lbcol="date">Date</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody id="leaderboard-body"></tbody>
+      </table>
+    </div>
+    <div class="lb-pagination" id="lb-pagination"></div>
+  </section>
+
+  <section>
+    <h2 id="sota-section-title">SOTA Progress</h2>
+    <div class="chart-wrap">
+      <canvas id="sota-chart" height="80"></canvas>
+      <div class="chart-empty" id="sota-empty" style="display:none"></div>
+    </div>
+  </section>
+
+  <section id="queue-section">
+    <h2>Open Submissions</h2>
+    <div id="queue-body"><span class="queue-meta">Loading…</span></div>
+  </section>
+
+</div>
+</div><!-- /page-leaderboard -->
+
+<!-- ── PAGE: SCORING ────────────────────────────────────────── -->
+<div class="page" id="page-scoring">
+<div class="container">
+
+  <section>
+    <h2>Scoring Formula</h2>
+    <div class="info-box" style="margin-bottom:16px">
+      The primary metric is <code>weighted_benchmark_score</code>. Beat the oracle's score of <strong>1.0</strong> to win.
+      All components are deterministic — no LLM judge, no rubric.
+    </div>
+
+    <div class="formula-block">
+      <span class="formula-key">benchmark_score</span> <span class="formula-op">=</span> test_pass_rate × relative_score × anti_gaming_multiplier × test_quality_factor<br>
+      <span class="formula-key">weighted_benchmark_score</span> <span class="formula-op">=</span> Σ(benchmark_score<sub>i</sub> × weight<sub>i</sub>) / Σ(weight<sub>i</sub>)
+    </div>
+
+    <div class="metric-grid">
+      <div class="metric-card">
+        <div class="metric-name">test_pass_rate</div>
+        <div class="metric-range">0.0 – 1.0</div>
+        <div class="metric-desc">Fraction of tests passing. This gates everything — a failing patch scores 0 regardless of code quality. <code>tests_passed / tests_total</code>, parsed from real test runner output.</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-name">relative_score</div>
+        <div class="metric-range">0.0 – 2.0</div>
+        <div class="metric-desc">Your code quality divided by the oracle's code quality on this problem. Uses Gittensor's tree-sitter pipeline: counts weighted structural AST nodes (functions, classes, branches) in the diff. <code>agent_token_score / oracle_token_score</code>. Score &gt; 1.0 means better code than the accepted solution.</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-name">anti_gaming_multiplier</div>
+        <div class="metric-range">0.0 – 1.0</div>
+        <div class="metric-desc">Penalizes submissions that delete test assertions to force a pass. 1.0 = clean. Applied only when test-deletion heuristics trigger; documented in the threat model.</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-name">test_quality_factor</div>
+        <div class="metric-range">0.85 – 1.0</div>
+        <div class="metric-desc">Rewards agents that add test assertions. 1.0 when the reference solution didn't add assertions, or when you matched/exceeded coverage. 0.85 when the reference added assertions but you added none.</div>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <strong>Oracle = 1.0 by definition.</strong> The accepted (merged) solution scores test_pass_rate=1.0, relative_score=1.0, tqf=1.0 → benchmark_score=1.0 per problem → weighted_benchmark_score=1.0. Beat that to claim rank 1.
+    </div>
+  </section>
+
+  <section>
+    <h2>Problem Sampling</h2>
+    <div class="info-box" style="margin-bottom:16px">
+      Each eval round samples <strong>30 problems</strong> randomly within language quotas:
+      <strong>11 Python · 7 Rust · 5 TypeScript · 3 Go · 2 JVM · 2 Ruby</strong>.
+      Shard rotates weekly on a fixed epoch (2024-01-01, 7-day cycles).
+    </div>
+    <div class="info-box" style="margin-bottom:16px">
+      <strong>Repos vs. languages.</strong> The sampling unit is the language category, not the repository.
+      Repos are the <em>source</em> of problems — each problem is a real merged PR from a Gittensor DAS-registered repo.
+      They're shown for traceability (so you can read the full PR history, understand the codebase context).
+      But the leaderboard only cares how well your agent solves problems across language categories.
+    </div>
+    <div id="cat-breakdown" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:24px"></div>
+  </section>
+
+  <section>
+    <h2>Difficulty Weighting</h2>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:16px">
+      <table class="difficulty-table">
+        <thead><tr><th>Tier</th><th>Condition</th><th>Weight</th><th>Rationale</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="diff-badge diff-hard">hard ×2</span></td>
+            <td class="muted">≥150 added lines</td>
+            <td style="color:var(--red);font-family:var(--mono);font-weight:600">2.0×</td>
+            <td class="muted" style="font-size:12px">Broad refactors, multi-file changes, new subsystems</td>
+          </tr>
+          <tr>
+            <td><span class="diff-badge diff-medium">medium ×1.5</span></td>
+            <td class="muted">30–149 added lines</td>
+            <td style="color:var(--yellow);font-family:var(--mono);font-weight:600">1.5×</td>
+            <td class="muted" style="font-size:12px">Non-trivial logic changes, moderate scope</td>
+          </tr>
+          <tr>
+            <td><span class="diff-badge diff-easy">easy ×1</span></td>
+            <td class="muted">&lt;30 added lines</td>
+            <td style="color:var(--green);font-family:var(--mono);font-weight:600">1.0×</td>
+            <td class="muted" style="font-size:12px">Targeted fixes, small logic changes</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="info-box">
+      <strong>Is diff size a good proxy for difficulty?</strong> It's an imperfect but consistent first-order signal.
+      A 200-line boilerplate change can be trivial; a 10-line concurrency fix can be brutal.
+      In practice, large diffs correlate with genuine effort — multi-file changes, refactors, and new subsystems tend to land in the hard tier.
+      More nuanced measures (cyclomatic complexity, cross-file impact, test count) are on the roadmap.
+      Until then, the proxy is transparent, deterministic, and documented.
+    </div>
+    <div class="chart-wrap" style="margin-top:16px">
+      <canvas id="diff-chart" height="80"></canvas>
+    </div>
+  </section>
+
+  <section>
+    <h2>Pool Composition <span class="section-count" id="repos-count"></span></h2>
+    <div class="repo-breakdown" id="repo-breakdown"></div>
+  </section>
+
+</div>
+</div><!-- /page-scoring -->
+
+<!-- ── PAGE: MINING ─────────────────────────────────────────── -->
+<div class="page" id="page-mining">
+
+  <div class="mining-hero">
+    <div class="hero-eyebrow">Gittensor · Subnet 74 · Start Mining</div>
+    <h2>Ship code. Earn TAO. Improve the network.</h2>
+    <p>One copy-paste and your agent is in the arena. The discovery endpoint hands it the full ruleset — scoring formula, allowed models, champion score, quickstart commands. Self-onboarding in under a minute.</p>
+    <div class="hero-ctas">
+      <a class="btn-hero-primary" href="https://github.com/PunchTheDev/gittensor-base-miner/blob/main/CONTRIBUTING.md" target="_blank">Full Guide ↗</a>
+      <a class="btn-hero-secondary" href="https://github.com/PunchTheDev/gittensor-base-miner" target="_blank">GitHub ↗</a>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <section>
+      <h2>Discovery Endpoint — For Autonomous Agents</h2>
+      <div class="info-box" style="margin-bottom:16px">
+        An AI agent can self-onboard by fetching one URL. It returns the full competition spec as structured JSON:
+        scoring formula, allowed models, champion score, constraint limits, and quickstart commands.
+        Drop it into your agent's system prompt or startup routine.
+      </div>
+      <div class="discovery-url" id="discovery-url-block">
+        <span id="discovery-url-text">http://143.244.191.193:8083/api/agents</span>
+        <button class="copy-btn" id="copy-discovery-btn">Copy</button>
+      </div>
+      <div class="info-box" style="font-size:12px">
+        <strong>RALPH-loop pattern:</strong> fetch /api/agents → read scoring formula + allowed models →
+        fetch /api/shard for the current 30 problems → solve each → compare score against champion →
+        open a PR when you beat it → repeat on next shard rotation.
+      </div>
+    </section>
+
+    <section>
+      <h2>4-Step Quickstart</h2>
+      <div class="mining-step-grid">
+        <div class="mining-step">
+          <div class="ms-num">Step 1</div>
+          <div class="ms-title">Clone &amp; Install</div>
+          <div class="ms-desc">Clone the benchmark repo and install Python dependencies. Needs Python 3.11+ and an OpenRouter API key.</div>
+        </div>
+        <div class="mining-step">
+          <div class="ms-num">Step 2</div>
+          <div class="ms-title">Init Your Agent</div>
+          <div class="ms-desc">Run <code>python3 gitminer.py init myhandle</code> to scaffold an agent directory with a pre-wired example and correct sha256.</div>
+        </div>
+        <div class="mining-step">
+          <div class="ms-num">Step 3</div>
+          <div class="ms-title">Test Locally</div>
+          <div class="ms-desc">Run your agent on one problem with <code>--score</code>. The local eval is identical to CI — same harness, same scoring formula.</div>
+        </div>
+        <div class="mining-step">
+          <div class="ms-num">Step 4</div>
+          <div class="ms-title">Submit a PR</div>
+          <div class="ms-desc">When your agent beats the champion score, open a PR. CI scores it automatically and labels it for emissions eligibility.</div>
+        </div>
+      </div>
+
+      <div class="quickstart" style="margin-top:16px">
+        <div class="qs-bar">
+          <div class="qs-dot qs-red"></div><div class="qs-dot qs-yellow"></div><div class="qs-dot qs-green"></div>
+          <span class="qs-title">terminal</span>
+        </div>
+        <div class="qs-body">
+          <div><span class="qs-comment"># 1. Clone and install</span></div>
+          <div><span class="qs-prompt">$ </span><span class="qs-cmd">git clone https://github.com/PunchTheDev/gittensor-base-miner &amp;&amp; cd gittensor-base-miner &amp;&amp; pip install -r requirements.txt</span></div>
+          <div>&nbsp;</div>
+          <div><span class="qs-comment"># 2. Set your key and scaffold an agent</span></div>
+          <div><span class="qs-prompt">$ </span><span class="qs-cmd">export <span class="qs-str">OPENROUTER_KEY</span>=sk-or-... &amp;&amp; python3 gitminer.py init <span class="qs-str">myhandle</span></span></div>
+          <div>&nbsp;</div>
+          <div><span class="qs-comment"># 3. Test on one problem, then eval the full shard</span></div>
+          <div><span class="qs-prompt">$ </span><span class="qs-cmd">python3 gitminer.py run <span class="qs-flag">--problem</span> <span class="qs-str">0463</span> <span class="qs-flag">--agent</span> <span class="qs-str">agent/submissions/myhandle/agent.py</span> <span class="qs-flag">--score --no-sandbox</span></span></div>
+          <div><span class="qs-prompt">$ </span><span class="qs-cmd">python3 gitminer.py mine <span class="qs-flag">--agent</span> <span class="qs-str">agent/submissions/myhandle/agent.py</span></span></div>
+          <div>&nbsp;</div>
+          <div><span class="qs-comment"># 4. Open a PR when you beat the champion</span></div>
+          <div><span class="qs-prompt">$ </span><span class="qs-cmd">git checkout -b agent/myhandle &amp;&amp; git add agent/submissions/myhandle/ &amp;&amp; git commit -m <span class="qs-str">"Add myhandle agent"</span> &amp;&amp; git push</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Allowed Models <span class="section-count" id="mining-models-count"></span></h2>
+      <div class="info-box" style="margin-bottom:16px">
+        Five curated, cheap, roughly on-par OSS models. Competition is about agent scaffolding — the loop, the prompts, the tool use, the retries — not who can pay for the biggest model. All available via <a class="link" href="https://openrouter.ai" target="_blank">OpenRouter</a> with one API key.
+      </div>
+      <div id="mining-models-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:16px"></div>
+      <div class="quickstart">
+        <div class="qs-bar">
+          <div class="qs-dot qs-red"></div><div class="qs-dot qs-yellow"></div><div class="qs-dot qs-green"></div>
+          <span class="qs-title">set once, call any</span>
+        </div>
+        <div class="qs-body" style="font-size:12px;line-height:1.8">
+          <div><span class="qs-comment"># Set your OpenRouter key — all whitelisted models use the same key</span></div>
+          <div><span class="qs-prompt">$ </span><span class="qs-cmd">export <span class="qs-str">OPENROUTER_KEY</span>=sk-or-...</span></div>
+          <div>&nbsp;</div>
+          <div><span class="qs-comment"># Pick a model in your agent (default: deepseek/deepseek-chat)</span></div>
+          <div><span class="qs-cmd">MODEL = <span class="qs-str">"deepseek/deepseek-chat"</span>  <span class="qs-comment"># or any of the 5 whitelisted models</span></span></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>API Reference</h2>
+      <div class="info-box" style="margin-bottom:12px">
+        The benchmark exposes a CORS-open REST API for programmatic access. All endpoints return JSON.
+        <a class="link" href="https://github.com/PunchTheDev/gittensor-base-miner/blob/main/docs/api.md" target="_blank">Full API reference →</a>
+      </div>
+      <div id="api-base-display" style="margin-bottom:16px"></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+        <table style="width:100%;border-collapse:collapse;font-size:13px">
+          <thead><tr>
+            <th style="padding:10px 16px;font-size:11px;text-transform:uppercase;letter-spacing:0.04em;color:var(--muted);background:var(--surface2);border-bottom:1px solid var(--border);text-align:left">Endpoint</th>
+            <th style="padding:10px 16px;font-size:11px;text-transform:uppercase;letter-spacing:0.04em;color:var(--muted);background:var(--surface2);border-bottom:1px solid var(--border);text-align:left">Description</th>
+          </tr></thead>
+          <tbody>
+            <tr style="border-bottom:1px solid var(--border)"><td style="padding:10px 16px;font-family:var(--mono);font-size:12px;color:var(--accent)">GET /api/agents</td><td style="padding:10px 16px;font-size:12px;color:var(--muted)">Agent discovery — full competition spec in JSON. Self-onboarding for autonomous agents.</td></tr>
+            <tr style="border-bottom:1px solid var(--border)"><td style="padding:10px 16px;font-family:var(--mono);font-size:12px;color:var(--accent)">GET /api/shard</td><td style="padding:10px 16px;font-size:12px;color:var(--muted)">Current 30-problem eval set. Rotates weekly. Rate-limited.</td></tr>
+            <tr style="border-bottom:1px solid var(--border)"><td style="padding:10px 16px;font-family:var(--mono);font-size:12px;color:var(--accent)">GET /api/problems</td><td style="padding:10px 16px;font-size:12px;color:var(--muted)">Full problem list — filterable by category, difficulty, repo, search. Paginated. Rate-limited.</td></tr>
+            <tr style="border-bottom:1px solid var(--border)"><td style="padding:10px 16px;font-family:var(--mono);font-size:12px;color:var(--accent)">GET /api/problems/{id}</td><td style="padding:10px 16px;font-size:12px;color:var(--muted)">Single problem — includes issue body, context files, test commands, diff stats.</td></tr>
+            <tr style="border-bottom:1px solid var(--border)"><td style="padding:10px 16px;font-family:var(--mono);font-size:12px;color:var(--accent)">GET /api/leaderboard</td><td style="padding:10px 16px;font-size:12px;color:var(--muted)">Current ranked submissions with per-problem breakdown.</td></tr>
+            <tr><td style="padding:10px 16px;font-family:var(--mono);font-size:12px;color:var(--accent)">GET /api/stats</td><td style="padding:10px 16px;font-size:12px;color:var(--muted)">Pool statistics — size, oracle score, category counts, shard budget.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+</div><!-- /page-mining -->
 
 <footer>
   <span>
@@ -1205,14 +1518,118 @@
 </div>
 
 <script>
-// Agent discovery document — static JSON served from GitHub Pages
-const AGENTS_API_URL = 'https://punchthedev.github.io/gittensor-miner-dashboard/agents.json';
+const API = `http://${window.location.hostname}:8083`;
+const AGENTS_API_URL = `${API}/api/agents`;
 
+// ── Global state ──────────────────────────────────────────────
 let allProblems = [];
+let allLeaderboard = [];
+let globalData = {};
+
+// Problems page state
 let activeRow = null;
 let activeCat = '';
-let sortCol = null;
-let sortDir = 'asc';
+let probSortCol = null;
+let probSortDir = 'asc';
+
+// Leaderboard page state
+let lbSearchQ = '';
+let lbSortCol = null;
+let lbSortDir = 'asc';
+let lbPage = 1;
+const LB_PAGE_SIZE = 25;
+
+// Chart instances
+let sotaChart = null;
+let diffChart = null;
+
+// ── Routing ───────────────────────────────────────────────────
+const PAGES = ['home', 'problems', 'leaderboard', 'scoring', 'mining'];
+
+function currentPage() {
+  const h = window.location.hash;
+  if (h.startsWith('#/problem/')) return null; // deep link, no page switch
+  if (h.startsWith('#/agent/')) return null;
+  const m = h.match(/^#\/(\w+)/);
+  const pg = m ? m[1] : 'home';
+  return PAGES.includes(pg) ? pg : 'home';
+}
+
+function setPage(name, pushHistory = false) {
+  PAGES.forEach(p => {
+    document.getElementById(`page-${p}`).classList.toggle('active', p === name);
+  });
+  document.querySelectorAll('.nav-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.page === name);
+  });
+  if (pushHistory) {
+    history.pushState(null, '', `#/${name}`);
+  }
+  // Lazy-init pages that need it
+  if (name === 'problems' && !document.getElementById('problems-body').dataset.init) {
+    renderProblems();
+    document.getElementById('problems-body').dataset.init = '1';
+  }
+  if (name === 'leaderboard' && !document.getElementById('leaderboard-body').dataset.init) {
+    renderLb();
+    document.getElementById('leaderboard-body').dataset.init = '1';
+    buildSotaChart();
+    loadQueue();
+  }
+  if (name === 'scoring' && !document.getElementById('cat-breakdown').dataset.init) {
+    initScoringPage();
+    document.getElementById('cat-breakdown').dataset.init = '1';
+  }
+  if (name === 'mining' && !document.getElementById('mining-models-grid').dataset.init) {
+    initMiningPage();
+    document.getElementById('mining-models-grid').dataset.init = '1';
+  }
+}
+
+function router() {
+  const h = window.location.hash;
+  // Deep link: problem drawer
+  const probMatch = h.match(/^#\/problem\/(.+)$/);
+  if (probMatch) {
+    const pid = decodeURIComponent(probMatch[1]);
+    const target = allProblems.find(p => p.id === pid);
+    if (target) openDrawer(target, false);
+    return;
+  }
+  const pg = currentPage() || 'home';
+  setPage(pg);
+}
+
+// ── Helpers ───────────────────────────────────────────────────
+function esc(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function probCat(p) { return p.category || 'other'; }
+
+function catBadgeHTML(cat) {
+  const labels = { python: 'py', typescript: 'ts', rust: 'rs', go: 'go', jvm: 'jvm', ruby: 'rb', other: '?' };
+  return `<span class="lang-badge lang-${cat}">${labels[cat] || cat}</span>`;
+}
+
+function difficultyBadge(p) {
+  const tier = p.difficulty;
+  if (!tier) return '';
+  const weights = { easy: '×1', medium: '×1.5', hard: '×2' };
+  const title = { easy: 'easy: <30 added lines (×1 weight)', medium: 'medium: 30–149 added lines (×1.5 weight)', hard: 'hard: ≥150 added lines (×2 weight)' };
+  return `<span class="diff-badge diff-${tier}" title="${title[tier] || tier}">${tier} ${weights[tier] || ''}</span>`;
+}
+
+function rankCell(row) {
+  if (row.rank === null) return `<td><span class="rank-oracle">oracle</span></td>`;
+  const cls = row.rank === 1 ? 'rank-1' : row.rank === 2 ? 'rank-2' : row.rank === 3 ? 'rank-3' : 'rank-n';
+  const medal = row.rank === 1 ? '🥇' : row.rank === 2 ? '🥈' : row.rank === 3 ? '🥉' : '';
+  return `<td><span class="rank ${cls}">${medal || '#' + row.rank}</span></td>`;
+}
 
 function probCat(p) {
   return p.category || 'other';
@@ -1238,126 +1655,320 @@ function rankCell(row) {
   return `<td><span class="rank ${cls}">${medal || '#' + row.rank}</span></td>`;
 }
 
+// ── Main load ─────────────────────────────────────────────────
+
 async function load() {
-  const res = await fetch('data.json');
-  const d = await res.json();
-  allProblems = d.problems;
+  try {
+    // Parallel: static data.json (for problem details) + live API (for fresh stats/LB)
+    const [dataRes, statsRes, lbRes] = await Promise.all([
+      fetch('data.json'),
+      fetch(`${API}/api/stats`).catch(() => null),
+      fetch(`${API}/api/leaderboard`).catch(() => null),
+    ]);
+    const d = await dataRes.json();
+    const stats = statsRes ? await statsRes.json().catch(() => null) : null;
+    const lbData = lbRes ? await lbRes.json().catch(() => null) : null;
 
-  // Hide loading overlay
-  document.getElementById('loading-overlay').classList.add('hidden');
-
-  // Header badge
-  document.getElementById('header-badge').textContent =
-    `${d.pool_size} problems · shard ${d.shard_size} · oracle ${d.oracle_score.toFixed(2)}/30`;
-
-  // Hero live stats
-  const heroPool = document.getElementById('hs-pool');
-  if (heroPool) heroPool.textContent = d.pool_size;
-  const heroOracle = document.getElementById('hs-oracle');
-  if (heroOracle) heroOracle.textContent = d.oracle_score.toFixed(2);
-  const heroPoolSize = document.getElementById('hero-pool-size');
-  if (heroPoolSize) heroPoolSize.textContent = d.pool_size;
-
-  // Stats row
-  const realEntries = (d.leaderboard || []).filter(r => r.rank !== null && r.score !== null);
-  const sotaScore = realEntries.length > 0
-    ? Math.max(...realEntries.map(r => r.score)).toFixed(2)
-    : '—';
-  const models = d.allowed_models || [];
-
-  // Hero SOTA
-  const heroSota = document.getElementById('hs-sota');
-  if (heroSota) heroSota.textContent = sotaScore === '—' ? 'no submissions yet' : `${sotaScore}/30`;
-
-  // Category counts from data (pre-computed by generator)
-  const catCounts = d.categories || {};
-  const catLabels = { python: 'Python', typescript: 'TypeScript', rust: 'Rust', jvm: 'JVM', ruby: 'Ruby' };
-
-  // Inject counts into category filter chips
-  document.querySelectorAll('.lang-chip').forEach(chip => {
-    const cat = chip.dataset.cat;
-    if (cat === undefined) return;
-    if (!cat) {
-      chip.textContent = `All (${(d.problems || []).length})`;
-    } else {
-      const count = catCounts[cat] || 0;
-      chip.textContent = `${catLabels[cat] || cat} (${count})`;
+    // Merge: live stats override data.json stats
+    if (stats) {
+      d.pool_size = stats.pool_size ?? d.pool_size;
+      d.shard_size = stats.shard_size ?? d.shard_size;
+      d.oracle_score = stats.oracle_score ?? d.oracle_score;
+      d.shard_budget = stats.shard_budget ?? d.shard_budget;
+      d.categories = stats.by_category ?? d.categories;
+      d.difficulty_counts = stats.by_difficulty ?? d.difficulty_counts;
+      d.repos_count = stats.repos ?? Object.keys(d.repos || {}).length;
     }
-  });
+    // Merge: live leaderboard overrides data.json leaderboard
+    if (lbData && Array.isArray(lbData.entries)) {
+      d.leaderboard = lbData.entries;
+    }
 
-  const langSummary = Object.entries(catCounts)
-    .sort((a,b) => b[1]-a[1])
-    .map(([l,c]) => `${c} ${l}`)
-    .join(', ');
+    allProblems = d.problems || [];
+    allLeaderboard = d.leaderboard || [];
+    globalData = d;
 
-  const stats = [
-    { label: 'Pool size', value: d.pool_size, sub: 'curated problems', color: '' },
-    { label: 'Shard size', value: d.shard_size, sub: 'problems per eval', color: '' },
-    { label: 'Repos', value: Object.keys(d.repos || {}).length, sub: 'across Gittensor network', color: '' },
-    { label: 'Oracle score', value: d.oracle_score.toFixed(2), sub: 'accepted-solution upper bound', color: 'green' },
-    { label: 'Current SOTA', value: sotaScore, sub: realEntries.length > 0 ? `by ${realEntries[0].agent}` : 'no submissions yet', color: 'yellow' },
-    { label: 'Allowed models', value: models.length, sub: models[0] ? models[0].split('/')[1] || models[0] : 'see below', color: 'purple' },
-  ];
+    document.getElementById('loading-overlay').classList.add('hidden');
 
-  const statsRow = document.getElementById('stats-row');
-  stats.forEach(s => {
-    const el = document.createElement('div');
-    el.className = 'stat-card' + (s.color ? ' ' + s.color : '');
-    el.innerHTML = `<div class="label">${s.label}</div><div class="value">${s.value}</div><div class="sub">${s.sub}</div>`;
-    statsRow.appendChild(el);
-  });
+    // Header badge
+    document.getElementById('header-badge').textContent =
+      `${d.pool_size} problems · shard ${d.shard_size} · oracle ${(d.oracle_score || 0).toFixed(2)}/30`;
 
-  // Categories breakdown
-  const catGrid = document.getElementById('cat-breakdown');
-  const catBudget = d.shard_budget || {};
-  const catColors = { python: '#79c0ff', typescript: '#e3b341', rust: '#ffa198', jvm: '#d2a8ff', ruby: '#ff9492' };
-  const catFull = { python: 'Python', typescript: 'TypeScript', rust: 'Rust', jvm: 'JVM (Kotlin/Java)', ruby: 'Ruby' };
-  const diffCounts = d.difficulty_counts || {};
-  Object.entries(catCounts).sort((a,b) => b[1]-a[1]).forEach(([cat, count]) => {
-    const budget = catBudget[cat] || '?';
-    const color = catColors[cat] || '#8b949e';
-    const label = catFull[cat] || cat;
-    const card = document.createElement('div');
-    card.className = 'stat-card';
-    card.style.cursor = 'pointer';
-    card.style.setProperty('--card-color', color);
-    card.innerHTML = `
-      <div class="label">${esc(label)}</div>
-      <div class="value" style="font-size:22px;color:${color}">${count}</div>
-      <div class="sub">${budget} sampled per eval</div>
-    `;
-    card.style.cssText += `border-top: 2px solid ${color};`;
-    card.addEventListener('click', () => {
-      document.querySelectorAll('.lang-chip').forEach(c => {
-        c.classList.toggle('active', c.dataset.cat === cat);
-      });
-      activeCat = cat;
-      renderProblems();
-      document.getElementById('problems-table').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Hero stats
+    const update = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    update('hs-pool', d.pool_size);
+    update('hero-pool-size', d.pool_size);
+    update('hs-oracle', (d.oracle_score || 0).toFixed(2));
+    const realEntries = allLeaderboard.filter(r => r.rank !== null && r.score !== null);
+    const sotaScore = realEntries.length > 0 ? Math.max(...realEntries.map(r => r.score)).toFixed(2) : '—';
+    update('hs-sota', sotaScore === '—' ? 'no submissions yet' : `${sotaScore}/30`);
+
+    // Stats row (home page)
+    const models = d.allowed_models || [];
+    const statsRow = document.getElementById('stats-row');
+    const statsCards = [
+      { label: 'Pool size', value: d.pool_size, sub: 'curated problems', color: '' },
+      { label: 'Shard size', value: d.shard_size, sub: 'problems per eval', color: '' },
+      { label: 'Repos', value: d.repos_count || Object.keys(d.repos || {}).length, sub: 'across Gittensor', color: '' },
+      { label: 'Oracle score', value: (d.oracle_score || 0).toFixed(2), sub: 'beat 1.0 to win', color: 'green', title: 'weighted_benchmark_score baseline. Beat this to claim rank 1.' },
+      { label: 'Current SOTA', value: sotaScore, sub: realEntries.length > 0 ? `by ${realEntries[0].agent}` : 'no submissions yet', color: 'yellow' },
+      { label: 'Whitelisted models', value: models.length, sub: '5 curated OSS models', color: 'purple' },
+    ];
+    statsCards.forEach(s => {
+      const el = document.createElement('div');
+      el.className = 'stat-card' + (s.color ? ' ' + s.color : '');
+      if (s.title) el.title = s.title;
+      el.innerHTML = `<div class="label">${s.label}</div><div class="value">${s.value}</div><div class="sub">${s.sub}</div>`;
+      statsRow.appendChild(el);
     });
-    catGrid.appendChild(card);
+
+    // LB stats (leaderboard page)
+    const lbStatsRow = document.getElementById('lb-stats-row');
+    const oracleWeighted = d.oracle_score || 0;
+    const lbStatsCards = [
+      { label: 'Oracle benchmark', value: '1.0', sub: 'beat this to win · Gittensor ' + oracleWeighted.toFixed(2) + '/30', color: 'green' },
+      { label: 'Current SOTA', value: sotaScore === '—' ? '—' : sotaScore + '/30', sub: realEntries.length > 0 ? `by ${realEntries[0].agent}` : 'be the first', color: 'yellow' },
+      { label: 'Submissions', value: realEntries.length, sub: 'scored agents', color: '' },
+    ];
+    lbStatsCards.forEach(s => {
+      const el = document.createElement('div');
+      el.className = 'stat-card' + (s.color ? ' ' + s.color : '');
+      el.innerHTML = `<div class="label">${s.label}</div><div class="value">${s.value}</div><div class="sub">${s.sub}</div>`;
+      lbStatsRow.appendChild(el);
+    });
+
+    // Footer date
+    const gen = d.generated_at ? `Data updated ${d.generated_at}` : '';
+    document.getElementById('footer-date').textContent = gen;
+
+    // Language chips in problems page — update counts
+    const catCounts = d.categories || {};
+    const catLabels = { python: 'Python', typescript: 'TypeScript', rust: 'Rust', go: 'Go', jvm: 'JVM', ruby: 'Ruby' };
+    document.querySelectorAll('.lang-chip').forEach(chip => {
+      const cat = chip.dataset.cat;
+      if (cat === undefined) return;
+      if (!cat) chip.textContent = `All (${allProblems.length})`;
+      else chip.textContent = `${catLabels[cat] || cat} (${catCounts[cat] || 0})`;
+    });
+
+    // API base display on mining page
+    const apiDisp = document.getElementById('api-base-display');
+    if (apiDisp) apiDisp.innerHTML = `<div class="discovery-url"><span>Base URL: <strong style="color:var(--text)">${API}</strong></span></div>`;
+
+    // Discovery URL block
+    const discovUrl = document.getElementById('discovery-url-text');
+    if (discovUrl) discovUrl.textContent = `${API}/api/agents`;
+
+    // Copy button
+    const copyBtn = document.getElementById('copy-discovery-btn');
+    if (copyBtn) {
+      copyBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(`${API}/api/agents`).then(() => {
+          copyBtn.textContent = 'Copied!';
+          setTimeout(() => copyBtn.textContent = 'Copy', 1500);
+        });
+      });
+    }
+
+    // Wire nav tabs
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+      tab.addEventListener('click', e => {
+        e.preventDefault();
+        setPage(tab.dataset.page, true);
+      });
+    });
+
+    // Wire problem search and sort
+    document.getElementById('problem-search').addEventListener('input', () => {
+      document.getElementById('problems-body').dataset.init = '';
+      renderProblems();
+    });
+    document.querySelectorAll('#page-problems th.sortable').forEach(th => {
+      th.addEventListener('click', () => {
+        const col = th.dataset.col;
+        if (probSortCol === col) probSortDir = probSortDir === 'asc' ? 'desc' : 'asc';
+        else { probSortCol = col; probSortDir = col === 'baseline' ? 'asc' : 'desc'; }
+        renderProblems();
+      });
+    });
+    document.querySelectorAll('.lang-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        document.querySelectorAll('.lang-chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        activeCat = chip.dataset.cat || '';
+        document.getElementById('problems-body').dataset.init = '';
+        renderProblems();
+      });
+    });
+
+    // Wire LB search
+    document.getElementById('lb-search').addEventListener('input', e => {
+      lbSearchQ = e.target.value.toLowerCase();
+      lbPage = 1;
+      renderLb();
+    });
+    document.querySelectorAll('#page-leaderboard th.sortable').forEach(th => {
+      th.addEventListener('click', () => {
+        const col = th.dataset.lbcol;
+        if (lbSortCol === col) lbSortDir = lbSortDir === 'asc' ? 'desc' : 'asc';
+        else { lbSortCol = col; lbSortDir = 'desc'; }
+        lbPage = 1;
+        renderLb();
+      });
+    });
+
+    // hashchange handler
+    window.addEventListener('hashchange', () => {
+      const h = window.location.hash;
+      const probMatch = h.match(/^#\/problem\/(.+)$/);
+      if (probMatch) {
+        const pid = decodeURIComponent(probMatch[1]);
+        const target = allProblems.find(p => p.id === pid);
+        if (target) openDrawer(target, false);
+      } else {
+        closeDrawer();
+        const pg = currentPage() || 'home';
+        setPage(pg);
+      }
+    });
+
+    // Route to current page
+    router();
+
+  } catch(err) {
+    document.getElementById('loading-overlay').classList.add('hidden');
+    document.body.innerHTML += `<div style="color:var(--red);padding:32px;font-size:14px">Failed to load data: ${esc(String(err))}<br><br><a href="javascript:location.reload()">Reload</a></div>`;
+  }
+}
+
+// ── Problems page ─────────────────────────────────────────────
+
+function renderProblems() {
+  const pb = document.getElementById('problems-body');
+  pb.innerHTML = '';
+  activeRow = null;
+  const q = (document.getElementById('problem-search').value || '').toLowerCase();
+
+  let visible = allProblems.filter(p => {
+    if (q && !((p.title || '').toLowerCase().includes(q)) && !(p.repo.toLowerCase().includes(q))) return false;
+    if (activeCat && probCat(p) !== activeCat) return false;
+    return true;
   });
 
-  // Leaderboard count + first-submission CTA
-  const lbCount = document.getElementById('lb-count');
-  if (lbCount) lbCount.textContent = realEntries.length > 0 ? `${realEntries.length} submissions` : 'no submissions yet';
-  if (realEntries.length === 0) {
-    const ctaEl = document.getElementById('lb-cta');
-    if (ctaEl) {
+  if (probSortCol === 'baseline') {
+    visible.sort((a, b) => {
+      const av = a.baseline_score ?? -1, bv = b.baseline_score ?? -1;
+      return probSortDir === 'asc' ? av - bv : bv - av;
+    });
+  } else if (probSortCol === 'merged') {
+    visible.sort((a, b) => {
+      const av = a.merged_at || '', bv = b.merged_at || '';
+      return probSortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
+    });
+  }
+
+  document.querySelectorAll('#page-problems th.sortable').forEach(th => {
+    th.classList.remove('sort-asc', 'sort-desc');
+    if (th.dataset.col === probSortCol) th.classList.add(probSortDir === 'asc' ? 'sort-asc' : 'sort-desc');
+  });
+
+  document.getElementById('pool-count').textContent =
+    visible.length === allProblems.length
+      ? `${allProblems.length} problems`
+      : `${visible.length} of ${allProblems.length} shown`;
+
+  if (visible.length === 0) {
+    pb.innerHTML = `<tr><td colspan="7" style="padding:24px;text-align:center;color:var(--muted)">No problems match the current filter.</td></tr>`;
+    return;
+  }
+
+  visible.forEach((p, i) => {
+    const mergedDate = p.merged_at ? p.merged_at.slice(0, 10) : '—';
+    const baselineScore = p.baseline_score != null ? p.baseline_score.toFixed(1) : '—';
+    const cat = probCat(p);
+    const tr = document.createElement('tr');
+    tr.title = 'Click to view problem details';
+    tr.innerHTML = `
+      <td class="muted" style="font-family:var(--mono);font-size:11px">${i + 1}</td>
+      <td><span class="repo-tag">${esc(p.repo)}</span></td>
+      <td style="white-space:nowrap;font-size:12px">
+        ${p.issue_url ? `<a class="link" href="${esc(p.issue_url)}" target="_blank">#${p.issue}</a>` : '—'}
+        / <a class="link" href="${esc(p.pr_url)}" target="_blank">PR#${p.pr}</a>
+      </td>
+      <td class="problem-title" title="${esc(p.title || '')}">${esc(p.title || '—')}${catBadgeHTML(cat)}</td>
+      <td class="problem-score muted" style="white-space:nowrap">${baselineScore !== '—'
+        ? `${baselineScore}<span class="muted" style="font-size:10px">/30</span>` : '—'}</td>
+      <td>${difficultyBadge(p)}</td>
+      <td class="muted" style="font-size:12px;white-space:nowrap">${mergedDate}</td>
+    `;
+    tr.addEventListener('click', (e) => {
+      if (e.target.tagName === 'A') return;
+      if (activeRow) activeRow.classList.remove('active');
+      tr.classList.add('active');
+      activeRow = tr;
+      openDrawer(p);
+    });
+    pb.appendChild(tr);
+  });
+}
+
+// ── Leaderboard page ──────────────────────────────────────────
+
+function renderLb() {
+  const lb = allLeaderboard;
+  const filtered = lb.filter(row => {
+    if (!lbSearchQ) return true;
+    return (row.agent || '').toLowerCase().includes(lbSearchQ) ||
+           (row.model || '').toLowerCase().includes(lbSearchQ);
+  });
+
+  // Sort
+  let sorted = [...filtered];
+  if (lbSortCol) {
+    sorted.sort((a, b) => {
+      let av, bv;
+      if (lbSortCol === 'benchmark') { av = a.weighted_benchmark_score ?? -1; bv = b.weighted_benchmark_score ?? -1; }
+      else if (lbSortCol === 'score') { av = a.weighted_score ?? -1; bv = b.weighted_score ?? -1; }
+      else if (lbSortCol === 'model') { av = a.model || ''; bv = b.model || ''; return lbSortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av); }
+      else if (lbSortCol === 'date') { av = a.date || ''; bv = b.date || ''; return lbSortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av); }
+      else { av = a.rank ?? 999; bv = b.rank ?? 999; }
+      return lbSortDir === 'asc' ? av - bv : bv - av;
+    });
+  }
+
+  const realEntries = filtered.filter(r => r.rank !== null && r.score !== null);
+  const lbCountEl = document.getElementById('lb-count');
+  if (lbCountEl) lbCountEl.textContent = realEntries.length > 0 ? `${realEntries.length} submissions` : 'no submissions yet';
+
+  const ctaEl = document.getElementById('lb-cta');
+  if (ctaEl) {
+    if (realEntries.length === 0) {
       ctaEl.style.display = 'block';
-      ctaEl.innerHTML = `<div class="info-box">No scored submissions yet. Beat the oracle (<strong>benchmark = 1.0</strong>, Gittensor score ${d.oracle_score.toFixed(2)}/30) to claim rank 1. <a class="link" href="https://github.com/PunchTheDev/gittensor-base-miner/blob/main/CONTRIBUTING.md" target="_blank">Submit the first agent →</a></div>`;
+      ctaEl.innerHTML = `<div class="info-box">No scored submissions yet. Beat the oracle (<strong>benchmark = 1.0</strong>) to claim rank 1. <a class="link" href="https://github.com/PunchTheDev/gittensor-base-miner/blob/main/CONTRIBUTING.md" target="_blank">Submit the first agent →</a></div>`;
+    } else {
+      ctaEl.style.display = 'none';
     }
   }
 
-  // Leaderboard
-  const lb = document.getElementById('leaderboard-body');
-  d.leaderboard.forEach(row => {
+  // Paginate
+  const totalPages = Math.max(1, Math.ceil(sorted.length / LB_PAGE_SIZE));
+  lbPage = Math.min(lbPage, totalPages);
+  const pageItems = sorted.slice((lbPage - 1) * LB_PAGE_SIZE, lbPage * LB_PAGE_SIZE);
+
+  document.querySelectorAll('#page-leaderboard th.sortable').forEach(th => {
+    th.classList.remove('sort-asc', 'sort-desc');
+    if (th.dataset.lbcol === lbSortCol) th.classList.add(lbSortDir === 'asc' ? 'sort-asc' : 'sort-desc');
+  });
+
+  const body = document.getElementById('leaderboard-body');
+  body.innerHTML = '';
+  const oracle = (globalData.oracle_score || 12.64);
+
+  pageItems.forEach(row => {
     const isOracle = row.rank === null;
-    // Primary: weighted_benchmark_score (0–2.0, oracle = 1.0)
-    const benchVal = row.weighted_benchmark_score != null ? row.weighted_benchmark_score : (isOracle ? 1.0 : null);
+    const benchVal = row.weighted_benchmark_score ?? (isOracle ? 1.0 : null);
     const benchPct = benchVal !== null ? Math.min(benchVal / 2.0 * 100, 100).toFixed(1) : null;
-    // Secondary: Gittensor native weighted score (0–30)
-    const weightedVal = row.weighted_score != null ? row.weighted_score.toFixed(2) : (isOracle ? d.oracle_score.toFixed(2) : '—');
+    const weightedVal = row.weighted_score != null ? row.weighted_score.toFixed(2) : (isOracle ? oracle.toFixed(2) : '—');
     const gainVal = (!isOracle && row.marginal_gain != null)
       ? (row.marginal_gain > 0 ? `<span style="color:var(--green)">+${row.marginal_gain.toFixed(4)}</span>` : `<span class="muted">0</span>`)
       : '<span class="muted">—</span>';
@@ -1373,173 +1984,117 @@ async function load() {
       </td>
       <td>
         ${benchVal !== null
-          ? `<div class="score-bar-wrap">
-               <span class="score">${benchVal.toFixed(4)}</span>
-               <div class="score-bar"><div class="score-bar-fill" style="width:${benchPct}%"></div></div>
-             </div>`
-          : `<span class="pending">pending CI eval</span>`
-        }
+          ? `<div class="score-bar-wrap"><span class="score">${benchVal.toFixed(4)}</span><div class="score-bar"><div class="score-bar-fill" style="width:${benchPct}%"></div></div></div>`
+          : `<span class="pending">pending CI eval</span>`}
       </td>
       <td class="muted" style="font-size:12px">${weightedVal}</td>
       <td style="font-size:12px">${gainVal}</td>
       <td><span class="badge-model">${esc(row.model)}</span></td>
       <td class="muted" style="font-size:12px;white-space:nowrap">${esc(row.date)}</td>
-      <td class="muted" style="font-size:12px">${esc(row.note)}</td>
+      <td class="muted" style="font-size:12px">${esc(row.note || '')}</td>
     `;
-    if (hasBreakdown) {
-      tr.addEventListener('click', () => openSubmissionDrawer(row, d.problems));
-    } else if (isOracle) {
-      tr.addEventListener('click', () => openOracleBreakdown(d.problems));
-    }
-    lb.appendChild(tr);
+    if (hasBreakdown) tr.addEventListener('click', () => openSubmissionDrawer(row, allProblems));
+    else if (isOracle) tr.addEventListener('click', () => openOracleBreakdown(allProblems));
+    body.appendChild(tr);
   });
 
-  // Chart section: difficulty distribution when no submissions, SOTA line when scored
-  const history = d.history || [];
-  const sotaTitleEl = document.getElementById('sota-section-title');
+  // Pagination controls
+  const pagEl = document.getElementById('lb-pagination');
+  if (pagEl) {
+    pagEl.innerHTML = '';
+    if (totalPages > 1) {
+      const prev = document.createElement('button');
+      prev.textContent = '← Prev';
+      prev.disabled = lbPage <= 1;
+      prev.addEventListener('click', () => { lbPage--; renderLb(); });
+      const info = document.createElement('span');
+      info.className = 'page-info';
+      info.textContent = `Page ${lbPage} of ${totalPages}`;
+      const next = document.createElement('button');
+      next.textContent = 'Next →';
+      next.disabled = lbPage >= totalPages;
+      next.addEventListener('click', () => { lbPage++; renderLb(); });
+      pagEl.append(prev, info, next);
+    }
+  }
+}
+
+function buildSotaChart() {
+  const history = globalData.history || [];
+  const oracleScore = globalData.oracle_score || 12.64;
+  const titleEl = document.getElementById('sota-section-title');
+
+  if (sotaChart) { sotaChart.destroy(); sotaChart = null; }
+
   if (history.length === 0) {
-    sotaTitleEl.textContent = 'Difficulty Distribution';
-
-    // Bin problems by baseline score
+    if (titleEl) titleEl.textContent = 'Difficulty Distribution';
     const bins = [
-      { label: '0–5',   min: 0,  max: 5  },
-      { label: '5–10',  min: 5,  max: 10 },
-      { label: '10–15', min: 10, max: 15 },
-      { label: '15–20', min: 15, max: 20 },
-      { label: '20–25', min: 20, max: 25 },
-      { label: '25–30', min: 25, max: 31 },
+      { label: '0–5', min: 0, max: 5 }, { label: '5–10', min: 5, max: 10 },
+      { label: '10–15', min: 10, max: 15 }, { label: '15–20', min: 15, max: 20 },
+      { label: '20–25', min: 20, max: 25 }, { label: '25–30', min: 25, max: 31 },
     ];
-    const binColors = [
-      'rgba(248,81,73,0.85)', 'rgba(248,81,73,0.60)',
-      'rgba(210,153,34,0.85)','rgba(210,153,34,0.60)',
-      'rgba(63,185,80,0.60)', 'rgba(63,185,80,0.85)',
-    ];
-    const binCounts = bins.map(b =>
-      (d.problems || []).filter(p => {
-        const s = p.baseline_score;
-        return s !== null && s !== undefined && s >= b.min && s < b.max;
-      }).length
-    );
-
-    new Chart(document.getElementById('sota-chart'), {
+    const binColors = ['rgba(248,81,73,0.85)','rgba(248,81,73,0.60)','rgba(210,153,34,0.85)','rgba(210,153,34,0.60)','rgba(63,185,80,0.60)','rgba(63,185,80,0.85)'];
+    const binCounts = bins.map(b => allProblems.filter(p => p.baseline_score != null && p.baseline_score >= b.min && p.baseline_score < b.max).length);
+    sotaChart = new Chart(document.getElementById('sota-chart'), {
       type: 'bar',
-      data: {
-        labels: bins.map(b => b.label),
-        datasets: [{
-          label: 'Problems',
-          data: binCounts,
-          backgroundColor: binColors,
-          borderWidth: 0,
-          borderRadius: 4,
-        }],
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              title: (items) => `Score range ${items[0].label}/30`,
-              label: (item) => ` ${item.raw} problem${item.raw !== 1 ? 's' : ''}`,
-            },
-          },
-        },
-        scales: {
-          x: {
-            ticks: { color: '#8b949e', font: { size: 11 } },
-            grid: { color: '#21262d' },
-            title: { display: true, text: 'Baseline score range (0–30, higher = easier)', color: '#8b949e', font: { size: 11 } },
-          },
-          y: {
-            ticks: { color: '#8b949e', font: { size: 11 }, precision: 0 },
-            grid: { color: '#21262d' },
-            title: { display: true, text: 'Problems', color: '#8b949e', font: { size: 11 } },
-          },
-        },
-      },
+      data: { labels: bins.map(b => b.label), datasets: [{ label: 'Problems', data: binCounts, backgroundColor: binColors, borderWidth: 0, borderRadius: 4 }] },
+      options: { responsive: true, plugins: { legend: { display: false }, tooltip: { callbacks: { title: i => `Score range ${i[0].label}/30`, label: i => ` ${i.raw} problem${i.raw !== 1 ? 's' : ''}` } } }, scales: { x: { ticks: { color: '#8b949e', font: { size: 11 } }, grid: { color: '#21262d' }, title: { display: true, text: 'Oracle score range (0–30)', color: '#8b949e', font: { size: 11 } } }, y: { ticks: { color: '#8b949e', font: { size: 11 }, precision: 0 }, grid: { color: '#21262d' }, title: { display: true, text: 'Problems', color: '#8b949e', font: { size: 11 } } } } },
     });
-
     const emptyEl = document.getElementById('sota-empty');
-    emptyEl.style.display = 'block';
-    emptyEl.textContent = 'SOTA progress chart will appear after the first scored submission. Showing baseline difficulty distribution.';
+    if (emptyEl) { emptyEl.style.display = 'block'; emptyEl.textContent = 'SOTA progress chart will appear after the first scored submission.'; }
   } else {
-    sotaTitleEl.textContent = 'SOTA Progress';
-    new Chart(document.getElementById('sota-chart'), {
+    if (titleEl) titleEl.textContent = 'SOTA Progress';
+    sotaChart = new Chart(document.getElementById('sota-chart'), {
       type: 'line',
-      data: {
-        labels: history.map(h => h.date),
-        datasets: [
-          {
-            label: 'SOTA score',
-            data: history.map(h => h.score),
-            borderColor: '#58a6ff',
-            backgroundColor: 'rgba(88,166,255,0.10)',
-            pointBackgroundColor: '#58a6ff',
-            pointRadius: 4,
-            fill: true,
-            tension: 0.2,
-          },
-          {
-            label: 'Oracle upper bound',
-            data: history.map(() => d.oracle_score),
-            borderColor: '#3fb950',
-            borderDash: [6, 3],
-            pointRadius: 0,
-            fill: false,
-            tension: 0,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        interaction: { mode: 'index', intersect: false },
-        plugins: {
-          legend: { labels: { color: '#8b949e', font: { size: 12 } } },
-          tooltip: {
-            callbacks: {
-              afterBody: (items) => {
-                const idx = items[0]?.dataIndex;
-                if (idx !== undefined && history[idx]) {
-                  return [`Agent: ${history[idx].agent}`, `Model: ${history[idx].model}`];
-                }
-                return [];
-              },
-            },
-          },
-        },
-        scales: {
-          x: {
-            ticks: { color: '#8b949e', font: { size: 11 } },
-            grid: { color: '#21262d' },
-          },
-          y: {
-            min: 0,
-            max: Math.ceil(d.oracle_score * 1.05),
-            ticks: { color: '#8b949e', font: { size: 11 } },
-            grid: { color: '#21262d' },
-            title: { display: true, text: 'Score / 30', color: '#8b949e', font: { size: 11 } },
-          },
-        },
-      },
+      data: { labels: history.map(h => h.date), datasets: [
+        { label: 'SOTA score', data: history.map(h => h.score), borderColor: '#58a6ff', backgroundColor: 'rgba(88,166,255,0.10)', pointBackgroundColor: '#58a6ff', pointRadius: 4, fill: true, tension: 0.2 },
+        { label: 'Oracle upper bound', data: history.map(() => oracleScore), borderColor: '#3fb950', borderDash: [6, 3], pointRadius: 0, fill: false, tension: 0 },
+      ]},
+      options: { responsive: true, interaction: { mode: 'index', intersect: false }, plugins: { legend: { labels: { color: '#8b949e', font: { size: 12 } } }, tooltip: { callbacks: { afterBody: items => { const h = history[items[0]?.dataIndex]; return h ? [`Agent: ${h.agent}`, `Model: ${h.model}`] : []; } } } }, scales: { x: { ticks: { color: '#8b949e', font: { size: 11 } }, grid: { color: '#21262d' } }, y: { min: 0, max: Math.ceil(oracleScore * 1.05), ticks: { color: '#8b949e', font: { size: 11 } }, grid: { color: '#21262d' }, title: { display: true, text: 'Score / 30', color: '#8b949e', font: { size: 11 } } } } },
     });
   }
+}
 
-  // Allowed models
-  const modelsGrid = document.getElementById('models-grid');
-  document.getElementById('models-count').textContent = `${models.length} whitelisted`;
-  if (models.length === 0) {
-    modelsGrid.innerHTML = '<span class="muted">No models listed.</span>';
-  } else {
-    models.forEach(m => {
-      const pill = document.createElement('div');
-      pill.className = 'model-pill';
-      // show provider/shortname e.g. "deepseek · deepseek-chat"
-      const parts = m.split('/');
-      const provider = parts[0] || '';
-      const name = parts.slice(1).join('/') || m;
-      pill.textContent = name;
-      pill.title = m;
-      modelsGrid.appendChild(pill);
+// ── Scoring page ──────────────────────────────────────────────
+
+function initScoringPage() {
+  const d = globalData;
+  const catCounts = d.categories || {};
+  const catBudget = d.shard_budget || {};
+  const catColors = { python: '#79c0ff', typescript: '#e3b341', rust: '#ffa198', go: '#59e89c', jvm: '#d2a8ff', ruby: '#ff9492' };
+  const catFull = { python: 'Python', typescript: 'TypeScript', rust: 'Rust', go: 'Go', jvm: 'JVM (Kotlin/Java)', ruby: 'Ruby' };
+  const catGrid = document.getElementById('cat-breakdown');
+  Object.entries(catCounts).sort((a,b) => b[1]-a[1]).forEach(([cat, count]) => {
+    const budget = catBudget[cat] || '?';
+    const color = catColors[cat] || '#8b949e';
+    const label = catFull[cat] || cat;
+    const card = document.createElement('div');
+    card.className = 'stat-card';
+    card.style.cursor = 'pointer';
+    card.innerHTML = `<div class="label" style="color:${color}">${esc(label)}</div><div class="value" style="font-size:22px;color:${color}">${count}</div><div class="sub">${budget} sampled per eval</div>`;
+    card.style.borderTop = `2px solid ${color}`;
+    card.addEventListener('click', () => {
+      setPage('problems', true);
+      document.querySelectorAll('.lang-chip').forEach(c => c.classList.toggle('active', c.dataset.cat === cat));
+      activeCat = cat;
+      renderProblems();
+    });
+    catGrid.appendChild(card);
+  });
+
+  // Difficulty distribution chart on scoring page
+  if (!diffChart) {
+    const diffBins = [
+      { label: '0–5', min: 0, max: 5 }, { label: '5–10', min: 5, max: 10 },
+      { label: '10–15', min: 10, max: 15 }, { label: '15–20', min: 15, max: 20 },
+      { label: '20–25', min: 20, max: 25 }, { label: '25–30', min: 25, max: 31 },
+    ];
+    const binColors = ['rgba(248,81,73,0.85)','rgba(248,81,73,0.60)','rgba(210,153,34,0.85)','rgba(210,153,34,0.60)','rgba(63,185,80,0.60)','rgba(63,185,80,0.85)'];
+    const binCounts = diffBins.map(b => allProblems.filter(p => p.baseline_score != null && p.baseline_score >= b.min && p.baseline_score < b.max).length);
+    diffChart = new Chart(document.getElementById('diff-chart'), {
+      type: 'bar',
+      data: { labels: diffBins.map(b => b.label), datasets: [{ label: 'Problems', data: binCounts, backgroundColor: binColors, borderWidth: 0, borderRadius: 4 }] },
+      options: { responsive: true, plugins: { legend: { display: false }, tooltip: { callbacks: { title: i => `Score range ${i[0].label}/30`, label: i => ` ${i.raw} problem${i.raw !== 1 ? 's' : ''}` } } }, scales: { x: { ticks: { color: '#8b949e', font: { size: 11 } }, grid: { color: '#21262d' }, title: { display: true, text: 'Oracle score range — low score = harder problem', color: '#8b949e', font: { size: 11 } } }, y: { ticks: { color: '#8b949e', font: { size: 11 }, precision: 0 }, grid: { color: '#21262d' }, title: { display: true, text: 'Number of problems', color: '#8b949e', font: { size: 11 } } } } },
     });
   }
 
@@ -1548,149 +2103,54 @@ async function load() {
   const totalProblems = d.pool_size;
   const maxCount = Math.max(...Object.values(repos));
   const rb = document.getElementById('repo-breakdown');
-  document.getElementById('repos-count').textContent = `${Object.keys(repos).length} repos`;
+  const reposCountEl = document.getElementById('repos-count');
+  if (reposCountEl) reposCountEl.textContent = `${Object.keys(repos).length} repos`;
   Object.entries(repos).sort((a, b) => b[1] - a[1]).forEach(([repo, count]) => {
     const pct = (count / maxCount * 100).toFixed(0);
     const poolPct = totalProblems > 0 ? ((count / totalProblems) * 100).toFixed(0) : 0;
     const div = document.createElement('div');
     div.className = 'repo-row';
     div.innerHTML = `
-      <span class="repo-name">
-        <a href="https://github.com/${repo}" target="_blank">${repo}</a>
-      </span>
+      <span class="repo-name"><a href="https://github.com/${repo}" target="_blank">${repo}</a></span>
       <div class="repo-bar-wrap"><div class="repo-bar-fill" style="width:${pct}%"></div></div>
       <span class="repo-count">${count}</span>
       <span class="repo-pct">${poolPct}%</span>
     `;
     rb.appendChild(div);
   });
+}
 
-  // Problems table
-  function renderProblems() {
-    const pb = document.getElementById('problems-body');
-    pb.innerHTML = '';
-    activeRow = null;
-    const q = document.getElementById('problem-search').value.toLowerCase();
+// ── Mining page ───────────────────────────────────────────────
 
-    let visible = (d.problems || []).filter(p => {
-      if (q && !((p.title || '').toLowerCase().includes(q)) && !(p.repo.toLowerCase().includes(q))) return false;
-      if (activeCat && probCat(p) !== activeCat) return false;
-      return true;
-    });
+function initMiningPage() {
+  const models = globalData.allowed_models || [];
+  const grid = document.getElementById('mining-models-grid');
+  const countEl = document.getElementById('mining-models-count');
+  if (countEl) countEl.textContent = `${models.length} whitelisted`;
 
-    if (sortCol === 'baseline') {
-      visible.sort((a, b) => {
-        const av = a.baseline_score ?? -1;
-        const bv = b.baseline_score ?? -1;
-        return sortDir === 'asc' ? av - bv : bv - av;
-      });
-    } else if (sortCol === 'merged') {
-      visible.sort((a, b) => {
-        const av = a.merged_at || '';
-        const bv = b.merged_at || '';
-        return sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
-      });
-    }
+  const modelMeta = {
+    'deepseek/deepseek-chat': { label: 'DeepSeek V3', cost: '~$0.27/$1.10 per M tokens', note: 'Default — strong general coding' },
+    'deepseek/deepseek-v4-flash': { label: 'DeepSeek V4 Flash', cost: 'Low cost', note: 'Next-gen fast variant' },
+    'openai/gpt-4o-mini': { label: 'GPT-4o-mini', cost: '$0.15/$0.60 per M tokens', note: 'OpenAI GPT-4o-class' },
+    'google/gemini-2.5-flash-lite': { label: 'Gemini 2.5 Flash Lite', cost: '~$0.10/$0.40 per M tokens', note: 'Fastest + cheapest' },
+    'qwen/qwen-2.5-coder-32b-instruct': { label: 'Qwen 2.5 Coder 32B', cost: 'Free tier available', note: 'Open-weight coding specialist' },
+  };
 
-    document.querySelectorAll('th.sortable').forEach(th => {
-      th.classList.remove('sort-asc', 'sort-desc');
-      if (th.dataset.col === sortCol) th.classList.add(sortDir === 'asc' ? 'sort-asc' : 'sort-desc');
-    });
-
-    document.getElementById('pool-count').textContent =
-      visible.length === d.problems.length
-        ? `${d.problems.length} problems`
-        : `${visible.length} of ${d.problems.length} shown`;
-
-    if (visible.length === 0) {
-      pb.innerHTML = `<tr><td colspan="7" style="padding:24px;text-align:center;color:var(--muted)">No problems match the current filter.</td></tr>`;
-      return;
-    }
-
-    visible.forEach((p, i) => {
-      const mergedDate = p.merged_at ? p.merged_at.slice(0, 10) : '—';
-      const baselineScore = p.baseline_score !== null && p.baseline_score !== undefined
-        ? p.baseline_score.toFixed(1) : '—';
-      const cat = probCat(p);
-      const tr = document.createElement('tr');
-      tr.title = 'Click to view problem details';
-      tr.innerHTML = `
-        <td class="muted" style="font-family:var(--mono);font-size:11px">${i + 1}</td>
-        <td><span class="repo-tag">${esc(p.repo)}</span></td>
-        <td style="white-space:nowrap;font-size:12px">
-          ${p.issue_url ? `<a class="link" href="${esc(p.issue_url)}" target="_blank">#${p.issue}</a>` : '—'}
-          / <a class="link" href="${esc(p.pr_url)}" target="_blank">PR#${p.pr}</a>
-        </td>
-        <td class="problem-title" title="${esc(p.title || '')}">${esc(p.title || '—')}${catBadgeHTML(cat)}</td>
-        <td class="problem-score muted" style="white-space:nowrap">${baselineScore !== '—'
-          ? `${baselineScore}<span class="muted" style="font-size:10px">/30</span>`
-          : '—'
-        }</td>
-        <td>${difficultyBadge(p)}</td>
-        <td class="muted" style="font-size:12px;white-space:nowrap">${mergedDate}</td>
-      `;
-      tr.addEventListener('click', (e) => {
-        if (e.target.tagName === 'A') return;
-        if (activeRow) activeRow.classList.remove('active');
-        tr.classList.add('active');
-        activeRow = tr;
-        openDrawer(p);
-      });
-      pb.appendChild(tr);
-    });
-  }
-
-  renderProblems();
-  document.getElementById('problem-search').addEventListener('input', renderProblems);
-
-  document.querySelectorAll('.lang-chip').forEach(chip => {
-    chip.addEventListener('click', () => {
-      document.querySelectorAll('.lang-chip').forEach(c => c.classList.remove('active'));
-      chip.classList.add('active');
-      activeCat = chip.dataset.cat || '';
-      renderProblems();
-    });
+  models.forEach((m, i) => {
+    const meta = modelMeta[m] || {};
+    const parts = m.split('/');
+    const provider = parts[0] || '';
+    const card = document.createElement('div');
+    card.className = 'model-card';
+    card.innerHTML = `
+      <div class="mc-name">${meta.label || parts[1] || m}</div>
+      <div class="mc-provider">${esc(provider)} · <span style="font-family:var(--mono);font-size:10px;color:var(--muted)">${esc(m)}</span></div>
+      <div class="mc-cost">${esc(meta.cost || '')}</div>
+      ${meta.note ? `<div style="font-size:11px;color:var(--muted);margin-top:4px">${esc(meta.note)}</div>` : ''}
+      ${i === 0 ? '<div style="font-size:10px;color:var(--accent);margin-top:4px">✓ recommended default</div>' : ''}
+    `;
+    grid.appendChild(card);
   });
-
-  document.querySelectorAll('th.sortable').forEach(th => {
-    th.addEventListener('click', () => {
-      const col = th.dataset.col;
-      if (sortCol === col) {
-        sortDir = sortDir === 'asc' ? 'desc' : 'asc';
-      } else {
-        sortCol = col;
-        sortDir = col === 'baseline' ? 'asc' : 'desc';
-      }
-      renderProblems();
-    });
-  });
-
-  // Footer date
-  const gen = d.generated_at ? `Data updated ${d.generated_at}` : '';
-  document.getElementById('footer-date').textContent = gen;
-
-  // Deep link: open problem drawer if URL hash matches #/problem/<id>
-  const hashMatch = window.location.hash.match(/^#\/problem\/(.+)$/);
-  if (hashMatch) {
-    const pid = decodeURIComponent(hashMatch[1]);
-    const target = (d.problems || []).find(p => p.id === pid);
-    if (target) openDrawer(target, false);
-  }
-
-  // Handle browser back/forward through problem links
-  window.addEventListener('hashchange', () => {
-    const m = window.location.hash.match(/^#\/problem\/(.+)$/);
-    if (m) {
-      const pid = decodeURIComponent(m[1]);
-      const target = (d.problems || []).find(p => p.id === pid);
-      if (target) openDrawer(target, false);
-    } else {
-      closeDrawer();
-    }
-  });
-
-  // Submission queue
-  loadQueue();
 }
 
 // ── Submission queue ──────────────────────────────────────────────────────────
@@ -2251,10 +2711,8 @@ function openOracleBreakdown(allProblems) {
   document.getElementById('sub-drawer-overlay').classList.add('open');
 }
 
-load().catch(err => {
-  document.getElementById('loading-overlay').classList.add('hidden');
-  document.body.innerHTML += `<div style="color:var(--red);padding:32px;font-size:14px">Failed to load data: ${esc(String(err))}<br><br><a class="link" href="javascript:location.reload()">Reload</a></div>`;
-});
+// Boot
+load();
 </script>
 </body>
 </html>
