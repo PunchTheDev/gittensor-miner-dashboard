@@ -1503,8 +1503,11 @@
             <tr style="border-bottom:1px solid var(--border)"><td style="padding:10px 16px;font-family:var(--mono);font-size:12px;color:var(--accent)">GET /api/shard</td><td style="padding:10px 16px;font-size:12px;color:var(--muted)">Current 30-problem eval set. Rotates weekly. Rate-limited.</td></tr>
             <tr style="border-bottom:1px solid var(--border)"><td style="padding:10px 16px;font-family:var(--mono);font-size:12px;color:var(--accent)">GET /api/problems</td><td style="padding:10px 16px;font-size:12px;color:var(--muted)">Full problem list — filterable by category, difficulty, repo, search. Paginated. Rate-limited.</td></tr>
             <tr style="border-bottom:1px solid var(--border)"><td style="padding:10px 16px;font-family:var(--mono);font-size:12px;color:var(--accent)">GET /api/problems/{id}</td><td style="padding:10px 16px;font-size:12px;color:var(--muted)">Single problem — includes issue body, context files, test commands, diff stats.</td></tr>
+            <tr style="border-bottom:1px solid var(--border)"><td style="padding:10px 16px;font-family:var(--mono);font-size:12px;color:var(--accent)">GET /api/problems/{id}/diff</td><td style="padding:10px 16px;font-size:12px;color:var(--muted)">Raw unified diff of the accepted solution — compare your agent's patch to the reference.</td></tr>
             <tr style="border-bottom:1px solid var(--border)"><td style="padding:10px 16px;font-family:var(--mono);font-size:12px;color:var(--accent)">GET /api/leaderboard</td><td style="padding:10px 16px;font-size:12px;color:var(--muted)">Current ranked submissions with per-problem breakdown.</td></tr>
+            <tr style="border-bottom:1px solid var(--border)"><td style="padding:10px 16px;font-family:var(--mono);font-size:12px;color:var(--accent)">GET /api/agents/{handle}/history</td><td style="padding:10px 16px;font-size:12px;color:var(--muted)">Full submission history for one agent — all runs, scores, and progression.</td></tr>
             <tr style="border-bottom:1px solid var(--border)"><td style="padding:10px 16px;font-family:var(--mono);font-size:12px;color:var(--accent)">GET /api/stats</td><td style="padding:10px 16px;font-size:12px;color:var(--muted)">Pool statistics — size, oracle score, category counts, shard budget.</td></tr>
+            <tr style="border-bottom:1px solid var(--border)"><td style="padding:10px 16px;font-family:var(--mono);font-size:12px;color:var(--accent)">GET /api/health</td><td style="padding:10px 16px;font-size:12px;color:var(--muted)">Liveness check — returns <code style="font-size:11px">{"status":"ok"}</code>.</td></tr>
             <tr style="border-bottom:1px solid var(--border)"><td style="padding:10px 16px;font-family:var(--mono);font-size:12px;color:var(--accent)">GET /api/openapi.json</td><td style="padding:10px 16px;font-size:12px;color:var(--muted)">OpenAPI 3.0 specification — machine-readable API contract.</td></tr>
             <tr><td style="padding:10px 16px;font-family:var(--mono);font-size:12px;color:var(--accent)">GET /docs</td><td style="padding:10px 16px;font-size:12px;color:var(--muted)">Swagger UI — interactive API explorer, try any endpoint live.</td></tr>
           </tbody>
@@ -1650,30 +1653,6 @@ function probCat(p) { return p.category || 'other'; }
 
 function catBadgeHTML(cat) {
   const labels = { python: 'py', typescript: 'ts', rust: 'rs', go: 'go', jvm: 'jvm', ruby: 'rb', other: '?' };
-  return `<span class="lang-badge lang-${cat}">${labels[cat] || cat}</span>`;
-}
-
-function difficultyBadge(p) {
-  const tier = p.difficulty;
-  if (!tier) return '';
-  const weights = { easy: '×1', medium: '×1.5', hard: '×2' };
-  const title = { easy: 'easy: <30 added lines (×1 weight)', medium: 'medium: 30–149 added lines (×1.5 weight)', hard: 'hard: ≥150 added lines (×2 weight)' };
-  return `<span class="diff-badge diff-${tier}" title="${title[tier] || tier}">${tier} ${weights[tier] || ''}</span>`;
-}
-
-function rankCell(row) {
-  if (row.rank === null) return `<td><span class="rank-oracle">oracle</span></td>`;
-  const cls = row.rank === 1 ? 'rank-1' : row.rank === 2 ? 'rank-2' : row.rank === 3 ? 'rank-3' : 'rank-n';
-  const medal = row.rank === 1 ? '🥇' : row.rank === 2 ? '🥈' : row.rank === 3 ? '🥉' : '';
-  return `<td><span class="rank ${cls}">${medal || '#' + row.rank}</span></td>`;
-}
-
-function probCat(p) {
-  return p.category || 'other';
-}
-
-function catBadgeHTML(cat) {
-  const labels = { python: 'py', typescript: 'ts', rust: 'rs', jvm: 'jvm', ruby: 'rb', other: '?' };
   return `<span class="lang-badge lang-${cat}">${labels[cat] || cat}</span>`;
 }
 
@@ -2299,14 +2278,6 @@ async function loadQueue() {
 
 // ── Drawer ────────────────────────────────────────────────────────────────────
 
-function esc(s) {
-  return String(s)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
-
 function renderMarkdown(src) {
   const lines = src.split('\n');
   let html = '';
@@ -2881,7 +2852,7 @@ function openOracleBreakdown(allProblems) {
     catCnts[p.category] = (catCnts[p.category] || 0) + 1;
   });
   let catSummaryHtml = '<div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:20px">';
-  const catColors2 = { python: '#79c0ff', typescript: '#e3b341', rust: '#ffa198', jvm: '#d2a8ff', ruby: '#ff9492' };
+  const catColors2 = { python: '#79c0ff', typescript: '#e3b341', rust: '#ffa198', go: '#59e89c', jvm: '#d2a8ff', ruby: '#ff9492' };
   Object.entries(catCnts).sort((a,b) => b[1]-a[1]).forEach(([cat, cnt]) => {
     const mean = (catTotals[cat] / cnt).toFixed(1);
     const color = catColors2[cat] || '#8b949e';
