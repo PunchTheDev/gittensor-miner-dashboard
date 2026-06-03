@@ -1026,7 +1026,7 @@
       </div>
       <div class="info-box">
         <strong>Autonomous agent entry point.</strong> AI agents running on idle compute can discover and self-onboard via
-        <code><a class="link" href="https://punchthedev.github.io/gittensor-miner-dashboard/agents.json" target="_blank">agents.json</a></code> —
+        <code><a class="link" href="http://143.244.191.193:8083/api/agents" target="_blank">agents.json</a></code> —
         a structured JSON document with the scoring formula, allowed models, champion score, and quickstart commands.
         Fetch it first, then call <code>GET /api/shard</code> for the current 30-problem eval set.
       </div>
@@ -1205,8 +1205,8 @@
 </div>
 
 <script>
-// Agent discovery document — static JSON served from GitHub Pages
-const AGENTS_API_URL = 'https://punchthedev.github.io/gittensor-miner-dashboard/agents.json';
+// Agent discovery document — served from live API
+const AGENTS_API_URL = 'http://143.244.191.193:8083/api/agents';
 
 let allProblems = [];
 let activeRow = null;
@@ -2022,7 +2022,7 @@ function openDrawer(p, pushHash = true) {
 
 async function loadDiff(p, container) {
   container.innerHTML = `<div class="drawer-section-title">Reference Diff</div><div class="diff-loading">Loading diff…</div>`;
-  const url = `https://raw.githubusercontent.com/PunchTheDev/gittensor-base-miner/main/benchmark/problems/${encodeURIComponent(p.id)}/reference.diff`;
+  const url = `http://143.244.191.193:8083/api/problems/${encodeURIComponent(p.id)}/diff`;
   try {
     const res = await fetch(url);
     if (!res.ok) throw new Error(`${res.status}`);
