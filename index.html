@@ -2117,8 +2117,9 @@ function openSubmissionDrawer(row, allProblems) {
       <th>Problem</th>
       <th>Repo</th>
       <th>Tier</th>
-      <th title="benchmark_score = test_pass_rate × relative_quality">Benchmark</th>
+      <th title="benchmark_score = test_pass_rate × relative_quality × tqf">Benchmark</th>
       <th title="Fraction of tests passing (0–1)">Pass Rate</th>
+      <th title="Test quality factor: 0.85 + 0.15×coverage_ratio (1.0 = matched reference assertions)">TQF</th>
       <th title="Gittensor native score (0–30)">Score</th>
     </tr></thead>
     <tbody id="sub-breakdown-body"></tbody>
@@ -2137,6 +2138,10 @@ function openSubmissionDrawer(row, allProblems) {
            ${(item.test_pass_rate * 100).toFixed(0)}%</span>`
       : (item.passed !== false ? `<span style="color:var(--green)">pass</span>` : `<span style="color:var(--red)">fail</span>`);
     const rawScore = item.score != null ? item.score.toFixed(2) : '—';
+    const tqfVal = item.test_quality_factor;
+    const tqfCell = tqfVal != null
+      ? `<span style="color:${tqfVal >= 0.99 ? 'var(--green)' : tqfVal >= 0.90 ? 'var(--yellow,#e3b341)' : 'var(--red)'}">${tqfVal.toFixed(3)}</span>`
+      : '<span class="muted">—</span>';
     const tier = prob.difficulty || item.difficulty || '—';
     const tr = document.createElement('tr');
     tr.innerHTML = `
@@ -2151,6 +2156,7 @@ function openSubmissionDrawer(row, allProblems) {
         </div>
       </td>
       <td style="font-size:12px">${passRate}</td>
+      <td style="font-size:12px">${tqfCell}</td>
       <td class="muted" style="font-size:12px">${rawScore}</td>
     `;
     tr.querySelector('td').addEventListener('click', () => {
