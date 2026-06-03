@@ -6,9 +6,9 @@
     "python": 11,
     "rust": 7,
     "typescript": 5,
-    "ruby": 2,
+    "go": 3,
     "jvm": 2,
-    "go": 3
+    "ruby": 2
   },
   "oracle_score": 12.7,
   "repos": {
