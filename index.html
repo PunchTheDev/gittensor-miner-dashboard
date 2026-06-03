@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gittensor Base Miner — Earn TAO by Building AI Coding Agents</title>
-  <meta name="description" content="Competitive benchmark on Gittensor subnet 74. Build an AI agent that solves GitHub issues, score it against 441 curated problems, beat the leaderboard, earn TAO mining emissions." />
+  <meta name="description" content="Competitive benchmark on Gittensor subnet 74. Build an AI agent that solves GitHub issues, score it against 446 curated problems, beat the leaderboard, earn TAO mining emissions." />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -951,7 +951,7 @@
 <div class="hero">
   <div class="hero-eyebrow">Gittensor · Subnet 74 · Mining Benchmark</div>
   <h2 class="hero-headline">Ship code. Earn TAO. Improve the network.</h2>
-  <p class="hero-sub">Build an AI agent that solves real GitHub issues better than anyone else. Score it against <strong id="hero-pool-size">441</strong> curated problems across 5 language categories, beat the leaderboard, and earn mining emissions — all while making Gittensor's base miner smarter.</p>
+  <p class="hero-sub">Build an AI agent that solves real GitHub issues better than anyone else. Score it against <strong id="hero-pool-size">446</strong> curated problems across 5 language categories, beat the leaderboard, and earn mining emissions — all while making Gittensor's base miner smarter.</p>
   <div class="hero-ctas">
     <a class="btn-hero-primary" href="https://github.com/PunchTheDev/gittensor-base-miner/blob/main/CONTRIBUTING.md" target="_blank">Start Mining →</a>
     <a class="btn-hero-secondary" href="https://github.com/PunchTheDev/gittensor-base-miner" target="_blank">GitHub ↗</a>
@@ -960,7 +960,7 @@
   </div>
   <div class="hero-live-stats">
     <div class="hero-live-stat"><span class="hero-dot"></span> Live</div>
-    <div class="hero-live-stat"><strong id="hs-pool">441</strong> problems</div>
+    <div class="hero-live-stat"><strong id="hs-pool">446</strong> problems</div>
     <div class="hero-live-stat"><strong>30</strong> per eval · 5 categories</div>
     <div class="hero-live-stat">Oracle <strong id="hs-oracle">11.83</strong>/30</div>
     <div class="hero-live-stat">SOTA <strong id="hs-sota">—</strong></div>
@@ -1667,6 +1667,26 @@ async function load() {
   const gen = d.generated_at ? `Data updated ${d.generated_at}` : '';
   document.getElementById('footer-date').textContent = gen;
 
+  // Deep link: open problem drawer if URL hash matches #/problem/<id>
+  const hashMatch = window.location.hash.match(/^#\/problem\/(.+)$/);
+  if (hashMatch) {
+    const pid = decodeURIComponent(hashMatch[1]);
+    const target = (d.problems || []).find(p => p.id === pid);
+    if (target) openDrawer(target, false);
+  }
+
+  // Handle browser back/forward through problem links
+  window.addEventListener('hashchange', () => {
+    const m = window.location.hash.match(/^#\/problem\/(.+)$/);
+    if (m) {
+      const pid = decodeURIComponent(m[1]);
+      const target = (d.problems || []).find(p => p.id === pid);
+      if (target) openDrawer(target, false);
+    } else {
+      closeDrawer();
+    }
+  });
+
   // Submission queue
   loadQueue();
 }
@@ -1855,7 +1875,10 @@ function inlineMd(s) {
   return out;
 }
 
-function openDrawer(p) {
+function openDrawer(p, pushHash = true) {
+  if (pushHash) {
+    history.replaceState(null, '', `#/problem/${encodeURIComponent(p.id)}`);
+  }
   const cat = probCat(p);
   document.getElementById('drawer-title').innerHTML =
     esc(p.title || `Problem ${p.id}`) + catBadgeHTML(cat);
@@ -2049,6 +2072,9 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeDra
 function closeDrawer() {
   document.getElementById('drawer-overlay').classList.remove('open');
   if (activeRow) { activeRow.classList.remove('active'); activeRow = null; }
+  if (window.location.hash.startsWith('#/problem/')) {
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+  }
 }
 
 function closeSubDrawer() {
