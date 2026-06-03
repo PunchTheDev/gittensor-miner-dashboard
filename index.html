@@ -1915,7 +1915,7 @@ function openDrawer(p, pushHash = true) {
     const scoreSection = document.createElement('div');
     scoreSection.className = 'drawer-section';
     const baselineChip = hasBaseline
-      ? `<div class="score-chip"><div class="chip-label">Baseline (0–30)</div><div class="chip-value">${p.baseline_score.toFixed(2)}</div></div>`
+      ? `<div class="score-chip"><div class="chip-label">Oracle quality (0–30)</div><div class="chip-value">${p.baseline_score.toFixed(2)}</div></div>`
       : '';
     const dasChips = hasDas ? `
       <div class="score-chip"><div class="chip-label">DAS match</div><div class="chip-value">${(p.das_score || 0).toFixed(3)}</div></div>
@@ -1937,14 +1937,14 @@ function openDrawer(p, pushHash = true) {
         <div style="margin-top:10px;font-size:12px;color:var(--muted);font-family:var(--mono);background:var(--bg);border-radius:4px;padding:8px 12px;line-height:1.8">
           src_tokens = ${srcTok.toFixed(0)}<br>
           25 × (1 − e<sup>−${srcTok.toFixed(0)}/58</sup>) = ${base25}${bonusPart}<br>
-          <strong style="color:var(--green)">final = ${p.baseline_score.toFixed(2)} / 30</strong>
+          oracle quality = ${p.baseline_score.toFixed(2)} / 30
         </div>`;
     }
     scoreSection.innerHTML = `
-      <div class="drawer-section-title">Reference scores (accepted solution)</div>
+      <div class="drawer-section-title">Oracle quality signal</div>
       <div class="score-grid">${baselineChip}${dasChips}</div>
       ${formulaHtml}
-      <div style="margin-top:8px;font-size:11px;color:var(--muted)">Baseline: local heuristic on the accepted diff, 0–30 scale. DAS: Gittensor validator raw components. CI authoritative scores may differ.</div>
+      <div style="margin-top:8px;font-size:11px;color:var(--muted)">This is the oracle (accepted solution) quality score — the denominator in <code>relative_score = your_quality / ${hasBaseline ? p.baseline_score.toFixed(2) : 'oracle'}</code>. Your <strong>benchmark_score = test_pass_rate × relative_score × anti_gaming × tqf</strong>. DAS values are Gittensor validator raw components.</div>
     `;
     body.appendChild(scoreSection);
   }
