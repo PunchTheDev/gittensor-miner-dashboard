@@ -1075,9 +1075,9 @@
           <tr>
             <th style="width:50px">Rank</th>
             <th>Agent</th>
-            <th>Score / 30</th>
-            <th title="Difficulty-weighted mean (easy×1 / medium×1.5 / hard×2)">Weighted</th>
-            <th title="Score above previous SOTA — only champion submissions earn this">Gain</th>
+            <th title="PRIMARY: difficulty-weighted test_pass_rate × relative_quality. Oracle = 1.0. Scale 0–2.0.">Benchmark</th>
+            <th title="Gittensor native weighted score (0–30). Used for on-chain emissions comparison.">Score / 30</th>
+            <th title="Benchmark score above previous champion — only the new champion earns this">Gain</th>
             <th>Model</th>
             <th>Date</th>
             <th>Notes</th>
@@ -1119,7 +1119,7 @@
     <h2>Categories &amp; Sampling</h2>
     <div class="info-box" style="margin-bottom:16px">
       Each eval round samples <strong>30 problems</strong> balanced across categories —
-      roughly <strong>12 Python · 8 TypeScript · 5 Rust · 3 JVM · 2 Ruby</strong>.
+      <strong>11 Python · 7 Rust · 5 TypeScript · 3 Go · 2 JVM · 2 Ruby</strong>.
       This prevents overfitting to any single language and rewards agents with genuine well-roundedness.
     </div>
     <div class="info-box" style="margin-bottom:16px">
@@ -1345,7 +1345,7 @@ async function load() {
     const ctaEl = document.getElementById('lb-cta');
     if (ctaEl) {
       ctaEl.style.display = 'block';
-      ctaEl.innerHTML = `<div class="info-box">No scored submissions yet. Oracle score <strong>${d.oracle_score.toFixed(2)}/30</strong> is the target to beat. <a class="link" href="https://github.com/PunchTheDev/gittensor-base-miner/blob/main/CONTRIBUTING.md" target="_blank">Submit the first agent →</a></div>`;
+      ctaEl.innerHTML = `<div class="info-box">No scored submissions yet. Beat the oracle (<strong>benchmark = 1.0</strong>, Gittensor score ${d.oracle_score.toFixed(2)}/30) to claim rank 1. <a class="link" href="https://github.com/PunchTheDev/gittensor-base-miner/blob/main/CONTRIBUTING.md" target="_blank">Submit the first agent →</a></div>`;
     }
   }
 
@@ -1353,11 +1353,13 @@ async function load() {
   const lb = document.getElementById('leaderboard-body');
   d.leaderboard.forEach(row => {
     const isOracle = row.rank === null;
-    const scoreVal = row.score !== null ? row.score : null;
-    const pct = scoreVal !== null ? (scoreVal / 30 * 100).toFixed(1) : null;
-    const weightedVal = row.weighted_score != null ? row.weighted_score.toFixed(2) : (isOracle ? '—' : '');
+    // Primary: weighted_benchmark_score (0–2.0, oracle = 1.0)
+    const benchVal = row.weighted_benchmark_score != null ? row.weighted_benchmark_score : (isOracle ? 1.0 : null);
+    const benchPct = benchVal !== null ? Math.min(benchVal / 2.0 * 100, 100).toFixed(1) : null;
+    // Secondary: Gittensor native weighted score (0–30)
+    const weightedVal = row.weighted_score != null ? row.weighted_score.toFixed(2) : (isOracle ? d.oracle_score.toFixed(2) : '—');
     const gainVal = (!isOracle && row.marginal_gain != null)
-      ? (row.marginal_gain > 0 ? `<span style="color:var(--green)">+${row.marginal_gain.toFixed(2)}</span>` : `<span class="muted">0</span>`)
+      ? (row.marginal_gain > 0 ? `<span style="color:var(--green)">+${row.marginal_gain.toFixed(4)}</span>` : `<span class="muted">0</span>`)
       : '<span class="muted">—</span>';
     const hasBreakdown = Array.isArray(row.breakdown) && row.breakdown.length > 0;
     const tr = document.createElement('tr');
@@ -1370,10 +1372,10 @@ async function load() {
         ${isOracle ? `<span style="font-size:10px;color:var(--muted);margin-left:6px">▸ per-problem</span>` : ''}
       </td>
       <td>
-        ${scoreVal !== null
+        ${benchVal !== null
           ? `<div class="score-bar-wrap">
-               <span class="score">${scoreVal.toFixed(2)}</span>
-               <div class="score-bar"><div class="score-bar-fill" style="width:${pct}%"></div></div>
+               <span class="score">${benchVal.toFixed(4)}</span>
+               <div class="score-bar"><div class="score-bar-fill" style="width:${benchPct}%"></div></div>
              </div>`
           : `<span class="pending">pending CI eval</span>`
         }
@@ -2085,11 +2087,13 @@ function closeSubDrawer() {
 
 function openSubmissionDrawer(row, allProblems) {
   document.getElementById('sub-drawer-title').textContent = row.agent;
-  const scoreVal = row.score !== null ? `${row.score.toFixed(2)} / 30` : 'pending';
+  const benchmarkDisplay = row.weighted_benchmark_score != null
+    ? `${row.weighted_benchmark_score.toFixed(4)} benchmark`
+    : (row.score != null ? `${row.score.toFixed(2)} / 30` : 'pending');
   document.getElementById('sub-drawer-meta').innerHTML = `
     <span class="badge-model">${esc(row.model)}</span>
     <span class="muted" style="font-size:12px">${esc(row.date)}</span>
-    <strong style="color:var(--accent);font-family:var(--mono)">${esc(scoreVal)}</strong>
+    <strong style="color:var(--accent);font-family:var(--mono)">${esc(benchmarkDisplay)}</strong>
   `;
 
   const body = document.getElementById('sub-drawer-body');
@@ -2113,8 +2117,9 @@ function openSubmissionDrawer(row, allProblems) {
       <th>Problem</th>
       <th>Repo</th>
       <th>Tier</th>
-      <th>Score / 30</th>
-      <th>Tests</th>
+      <th title="benchmark_score = test_pass_rate × relative_quality">Benchmark</th>
+      <th title="Fraction of tests passing (0–1)">Pass Rate</th>
+      <th title="Gittensor native score (0–30)">Score</th>
     </tr></thead>
     <tbody id="sub-breakdown-body"></tbody>
   `;
@@ -2125,10 +2130,14 @@ function openSubmissionDrawer(row, allProblems) {
   const tbody = table.querySelector('tbody');
   sorted.forEach(item => {
     const prob = probMap[item.problem_id] || {};
-    const passed = item.passed !== false;
-    const score = item.score != null ? item.score.toFixed(2) : '—';
-    const pct = item.score != null ? (item.score / 30 * 100).toFixed(0) : 0;
-    const tier = prob.difficulty || '—';
+    const benchScore = item.benchmark_score != null ? item.benchmark_score.toFixed(4) : '—';
+    const benchPct = item.benchmark_score != null ? Math.min(item.benchmark_score / 2.0 * 100, 100).toFixed(0) : 0;
+    const passRate = item.test_pass_rate != null
+      ? `<span style="color:${item.test_pass_rate >= 1.0 ? 'var(--green)' : item.test_pass_rate > 0 ? 'var(--yellow,#e3b341)' : 'var(--red)'}">
+           ${(item.test_pass_rate * 100).toFixed(0)}%</span>`
+      : (item.passed !== false ? `<span style="color:var(--green)">pass</span>` : `<span style="color:var(--red)">fail</span>`);
+    const rawScore = item.score != null ? item.score.toFixed(2) : '—';
+    const tier = prob.difficulty || item.difficulty || '—';
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td style="font-family:var(--mono);font-size:12px;color:var(--accent);cursor:pointer"
@@ -2137,14 +2146,12 @@ function openSubmissionDrawer(row, allProblems) {
       <td>${tier !== '—' ? difficultyBadge({difficulty: tier}) : '—'}</td>
       <td>
         <div class="score-bar-wrap">
-          <span class="score" style="font-size:13px">${score}</span>
-          ${item.score != null ? `<div class="score-bar"><div class="score-bar-fill" style="width:${pct}%"></div></div>` : ''}
+          <span class="score" style="font-size:13px">${benchScore}</span>
+          ${item.benchmark_score != null ? `<div class="score-bar"><div class="score-bar-fill" style="width:${benchPct}%"></div></div>` : ''}
         </div>
       </td>
-      <td>${passed
-        ? `<span style="color:var(--green);font-size:12px">✓ pass</span>`
-        : `<span style="color:var(--red);font-size:12px">✗ fail</span>`
-      }</td>
+      <td style="font-size:12px">${passRate}</td>
+      <td class="muted" style="font-size:12px">${rawScore}</td>
     `;
     tr.querySelector('td').addEventListener('click', () => {
       if (prob.id) { closeSubDrawer(); openDrawer(prob); }
