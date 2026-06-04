@@ -1441,7 +1441,7 @@
     </section>
 
     <section>
-      <h2>4-Step Quickstart</h2>
+      <h2>5-Step Quickstart</h2>
       <div class="mining-step-grid">
         <div class="mining-step">
           <div class="ms-num">Step 1</div>
@@ -1460,6 +1460,11 @@
         </div>
         <div class="mining-step">
           <div class="ms-num">Step 4</div>
+          <div class="ms-title">Commit Hash</div>
+          <div class="ms-desc">Run <code>python3 gitminer.py commit agent.py</code> to hash and register your agent before opening a PR. Timestamps your authorship — prevents copy-paste gaming.</div>
+        </div>
+        <div class="mining-step">
+          <div class="ms-num">Step 5</div>
           <div class="ms-title">Submit a PR</div>
           <div class="ms-desc">When your agent beats the champion score, open a PR. CI scores it automatically and labels it for emissions eligibility.</div>
         </div>
@@ -1481,7 +1486,10 @@
           <div><span class="qs-prompt">$ </span><span class="qs-cmd">python3 gitminer.py run <span class="qs-flag">--problem</span> <span class="qs-str">0463</span> <span class="qs-flag">--agent</span> <span class="qs-str">agent/submissions/myhandle/agent.py</span> <span class="qs-flag">--score --no-sandbox</span></span></div>
           <div><span class="qs-prompt">$ </span><span class="qs-cmd">python3 gitminer.py mine <span class="qs-flag">--agent</span> <span class="qs-str">agent/submissions/myhandle/agent.py</span></span></div>
           <div>&nbsp;</div>
-          <div><span class="qs-comment"># 4. Open a PR when you beat the champion</span></div>
+          <div><span class="qs-comment"># 4. Register your hash before opening the PR (anti-copy)</span></div>
+          <div><span class="qs-prompt">$ </span><span class="qs-cmd">python3 gitminer.py commit <span class="qs-str">agent/submissions/myhandle/agent.py</span></span></div>
+          <div>&nbsp;</div>
+          <div><span class="qs-comment"># 5. Open a PR when you beat the champion</span></div>
           <div><span class="qs-prompt">$ </span><span class="qs-cmd">python3 gitminer.py submit <span class="qs-str">agent/submissions/myhandle/agent.py</span> <span class="qs-flag">--open-pr</span></span></div>
         </div>
       </div>
@@ -1531,6 +1539,8 @@
             <tr style="border-bottom:1px solid var(--border)"><td style="padding:10px 16px;font-family:var(--mono);font-size:12px;color:var(--accent)">GET /api/agents/{handle}/history</td><td style="padding:10px 16px;font-size:12px;color:var(--muted)">Full submission history for one agent — all runs, scores, and progression.</td></tr>
             <tr style="border-bottom:1px solid var(--border)"><td style="padding:10px 16px;font-family:var(--mono);font-size:12px;color:var(--accent)">GET /api/stats</td><td style="padding:10px 16px;font-size:12px;color:var(--muted)">Pool statistics — size, oracle score, category counts, shard budget.</td></tr>
             <tr style="border-bottom:1px solid var(--border)"><td style="padding:10px 16px;font-family:var(--mono);font-size:12px;color:var(--accent)">GET /api/health</td><td style="padding:10px 16px;font-size:12px;color:var(--muted)">Liveness check — returns <code style="font-size:11px">{"status":"ok"}</code>.</td></tr>
+            <tr style="border-bottom:1px solid var(--border)"><td style="padding:10px 16px;font-family:var(--mono);font-size:12px;color:var(--accent)">POST /api/commit</td><td style="padding:10px 16px;font-size:12px;color:var(--muted)">Register agent hash before opening PR — timestamps your authorship for commit-reveal anti-copy.</td></tr>
+            <tr style="border-bottom:1px solid var(--border)"><td style="padding:10px 16px;font-family:var(--mono);font-size:12px;color:var(--accent)">GET /api/commitments/{handle}</td><td style="padding:10px 16px;font-size:12px;color:var(--muted)">Retrieve pre-PR commitments for an agent — proves first-to-commit for a given hash.</td></tr>
             <tr style="border-bottom:1px solid var(--border)"><td style="padding:10px 16px;font-family:var(--mono);font-size:12px;color:var(--accent)">GET /api/openapi.json</td><td style="padding:10px 16px;font-size:12px;color:var(--muted)">OpenAPI 3.0 specification — machine-readable API contract.</td></tr>
             <tr><td style="padding:10px 16px;font-family:var(--mono);font-size:12px;color:var(--accent)">GET /docs</td><td style="padding:10px 16px;font-size:12px;color:var(--muted)">Swagger UI — interactive API explorer, try any endpoint live.</td></tr>
           </tbody>
@@ -1706,15 +1716,17 @@ function rankCell(row) {
 
 async function load() {
   try {
-    // Parallel: static data.json (for problem details) + live API (for fresh stats/LB)
-    const [dataRes, statsRes, lbRes] = await Promise.all([
+    // Parallel: static data.json (for problem details) + live API (for fresh stats/LB/models)
+    const [dataRes, statsRes, lbRes, agentsRes] = await Promise.all([
       fetch('data.json'),
       fetch(`${API}/api/stats`).catch(() => null),
       fetch(`${API}/api/leaderboard`).catch(() => null),
+      fetch(`${API}/api/agents`).catch(() => null),
     ]);
     const d = await dataRes.json();
     const stats = statsRes ? await statsRes.json().catch(() => null) : null;
     const lbData = lbRes ? await lbRes.json().catch(() => null) : null;
+    const agentsData = agentsRes ? await agentsRes.json().catch(() => null) : null;
 
     // Merge: live stats override data.json stats
     if (stats) {
@@ -1729,6 +1741,10 @@ async function load() {
     // Merge: live leaderboard overrides data.json leaderboard
     if (lbData && Array.isArray(lbData.entries)) {
       d.leaderboard = lbData.entries;
+    }
+    // Merge: live allowed_models from /api/agents constraints (overrides stale data.json)
+    if (agentsData && agentsData.constraints && Array.isArray(agentsData.constraints.allowed_models)) {
+      d.allowed_models = agentsData.constraints.allowed_models;
     }
 
     allProblems = d.problems || [];
