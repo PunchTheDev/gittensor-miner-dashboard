@@ -1314,8 +1314,8 @@
           <tr>
             <th style="width:50px">Rank</th>
             <th>Agent</th>
-            <th class="sortable" data-lbcol="benchmark" title="PRIMARY: difficulty-weighted test_pass_rate × relative_quality. Oracle = 1.0. Scale 0–2.0.">Benchmark</th>
-            <th class="sortable" data-lbcol="score" title="Gittensor native weighted score (0–30). Used for on-chain emissions comparison.">Score / 30</th>
+            <th class="sortable" data-lbcol="benchmark" title="PRIMARY RANKING METRIC. Normalized difficulty-weighted score: test_pass_rate × code_quality × anti_gaming × token_efficiency × difficulty_tier. Oracle = 1.0 — beat this to earn emissions. Scale 0–2.0.">Benchmark ⓘ</th>
+            <th class="sortable" data-lbcol="score" title="Raw Gittensor-style weighted score (sum across 30 shard problems, scale 0–30). Oracle's raw score is 12.64 — shown for context, not used for ranking. Ranking uses the normalized Benchmark column.">Score / 30 ⓘ</th>
             <th title="Benchmark score above previous champion">Gain</th>
             <th title="Average efficiency factor across problems (1.0 = ≤10k tokens; decays to 0.85 at 50k). Hover for total tokens used.">Efficiency</th>
             <th class="sortable" data-lbcol="model">Model</th>
