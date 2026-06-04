@@ -1129,6 +1129,36 @@
     }
     .formula-block .formula-key { color: var(--accent); }
     .formula-block .formula-op { color: var(--yellow); }
+    /* Return-link chip in #anticopy-formula → back up to crown-threshold-table.
+       Counterpart to the 5 inbound entry points (4 ref-row phase chips + 1 LIVE chip)
+       and the 2 leaderboard CTA threshold links, which previously had no return path. */
+    .crown-back-chip {
+      float: right;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-family: var(--font);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 3px 9px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(88,166,255,0.08);
+      color: var(--accent);
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+      margin: -2px 0 6px 8px;
+    }
+    .crown-back-chip:hover,
+    .crown-back-chip:focus-visible {
+      background: rgba(88,166,255,0.18);
+      border-color: var(--accent);
+      transform: translateY(-1px);
+      outline: none;
+    }
     /* Stacked per-term formula rendering — each row is one factor */
     .formula-stack { display: flex; flex-direction: column; gap: 4px; }
     .formula-stack .fs-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px; }
@@ -2801,6 +2831,7 @@
       participation term — LLM output variance alone cannot steal the crown.
     </div>
     <div class="formula-block" id="anticopy-formula" style="scroll-margin-top:72px">
+      <a href="#crown-table-wrap" class="crown-back-chip" data-anchor="crown-table-wrap" title="Return to the crown_threshold reference table — the chip you arrived from is in there.">← Back to crown table</a>
       <span class="formula-key">crown_threshold</span> <span class="formula-op">=</span> sota + 0.02 × (2.0 − sota) / 2.0<br>
       <span class="formula-key">marginal_gain</span> <span class="formula-op">=</span> max(0, score − crown_threshold)<br>
       <span class="formula-key">contribution_weight</span> <span class="formula-op">=</span> score × 1.0 + marginal_gain × 3.0 <span style="color:var(--muted);font-size:11px">&nbsp;← base participation + (3× crown bonus if you beat the threshold)</span>
@@ -2809,7 +2840,7 @@
       <span class="dcc-label">Live now — current pool SOTA</span>
       <span class="dcc-lens" id="crown-live-caption">SOTA = <strong>—</strong> · crown_threshold = <strong>—</strong> · <span style="color:var(--muted)">awaiting first submission</span></span>
     </div>
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin:6px 0 16px">
+    <div id="crown-table-wrap" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin:6px 0 16px;scroll-margin-top:72px">
       <table class="difficulty-table" id="crown-threshold-table">
         <thead><tr><th>Current best score</th><th>Crown threshold</th><th>Required margin to claim crown</th></tr></thead>
         <tbody>
@@ -4622,7 +4653,7 @@ function initScoringPage() {
   if (!window._crownPhaseLinkWired) {
     window._crownPhaseLinkWired = true;
     document.addEventListener('click', (ev) => {
-      const a = ev.target.closest('a.crown-phase-chip[data-anchor]');
+      const a = ev.target.closest('a.crown-phase-chip[data-anchor], a.crown-back-chip[data-anchor]');
       if (!a) return;
       ev.preventDefault();
       const el = document.getElementById(a.getAttribute('data-anchor'));
