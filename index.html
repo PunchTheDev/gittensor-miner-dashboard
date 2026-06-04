@@ -73,21 +73,18 @@
       z-index: 100;
     }
 
-    .header-logo {
-      width: 28px; height: 28px;
-      background: linear-gradient(135deg, #1f6feb, #58a6ff);
-      border-radius: 6px;
+    .header-logo-link {
       display: flex;
       align-items: center;
-      justify-content: center;
-      font-weight: 800;
-      font-size: 14px;
-      color: #fff;
+      text-decoration: none;
       flex-shrink: 0;
+      opacity: 0.9;
+      transition: opacity 0.15s;
+      gap: 10px;
     }
-
-    header h1 { font-size: 15px; font-weight: 600; color: var(--text); }
-    header .subtitle { color: var(--muted); font-size: 12px; margin-left: 4px; }
+    .header-logo-link:hover { opacity: 1; }
+    .header-logo-img { height: 26px; width: auto; }
+    .header-title { font-size: 14px; font-weight: 600; color: var(--text); letter-spacing: -0.01em; }
 
     .header-right {
       margin-left: auto;
@@ -747,19 +744,13 @@
 
     /* ── Sub-page navigation ───────────────────────────────── */
     .nav {
-      border-bottom: 1px solid var(--border);
-      background: var(--surface);
-      padding: 0 24px;
       display: flex;
       align-items: center;
       gap: 0;
-      position: sticky;
-      top: 56px;
-      z-index: 99;
-      overflow-x: auto;
     }
     .nav-tab {
-      padding: 12px 18px;
+      padding: 0 14px;
+      height: 56px;
       font-size: 13px;
       font-weight: 500;
       color: var(--muted);
@@ -770,9 +761,12 @@
       transition: color 0.15s, border-color 0.15s;
       white-space: nowrap;
       text-decoration: none;
+      display: flex;
+      align-items: center;
     }
     .nav-tab:hover { color: var(--text); }
     .nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .nav-sep { width: 1px; height: 20px; background: var(--border); margin: 0 12px; flex-shrink: 0; }
 
     /* ── Pages ─────────────────────────────────────────────── */
     .page { display: none; }
@@ -899,10 +893,23 @@
 
     /* ── Hero ─────────────────────────────────────────────── */
     .hero {
-      border-bottom: 1px solid var(--border);
-      padding: 64px 32px 48px;
-      background: linear-gradient(180deg, rgba(31,111,235,0.07) 0%, transparent 100%);
+      padding: 72px 32px 56px;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% -10%, rgba(31,111,235,0.18) 0%, transparent 70%),
+        var(--bg);
       text-align: center;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 60px 60px;
+      opacity: 0.28;
+      pointer-events: none;
     }
     .hero-eyebrow {
       font-size: 11px;
@@ -1093,22 +1100,22 @@
 </div>
 
 <header>
-  <div class="header-logo">G</div>
-  <div>
-    <h1>Gittensor Base Miner</h1>
-  </div>
+  <a class="header-logo-link" href="#/home" id="logo-home-btn">
+    <img src="gt-logo-white.png" class="header-logo-img" alt="Gittensor" />
+    <span class="header-title">Base Miner</span>
+  </a>
   <div class="header-right">
+    <nav class="nav" id="main-nav">
+      <a class="nav-tab active" data-page="problems" href="#/problems">Problems</a>
+      <a class="nav-tab" data-page="leaderboard" href="#/leaderboard">Leaderboard</a>
+      <a class="nav-tab" data-page="scoring" href="#/scoring">Scoring</a>
+      <a class="nav-tab" data-page="mining" href="#/mining">Start Mining</a>
+    </nav>
+    <div class="nav-sep"></div>
     <div class="header-badge" id="header-badge">Loading…</div>
     <a class="btn-submit" href="https://github.com/PunchTheDev/gittensor-base-miner/blob/main/CONTRIBUTING.md" target="_blank">Submit Agent ↗</a>
   </div>
 </header>
-<nav class="nav" id="main-nav">
-  <a class="nav-tab active" data-page="home" href="#/home">Home</a>
-  <a class="nav-tab" data-page="problems" href="#/problems">Problems</a>
-  <a class="nav-tab" data-page="leaderboard" href="#/leaderboard">Leaderboard</a>
-  <a class="nav-tab" data-page="scoring" href="#/scoring">Scoring</a>
-  <a class="nav-tab" data-page="mining" href="#/mining">Start Mining</a>
-</nav>
 
 <!-- ── PAGE: HOME ──────────────────────────────────────────── -->
 <div class="page active" id="page-home">
@@ -1160,6 +1167,11 @@
         <div class="step-desc">Beat the champion → your agent becomes the new base miner. You earn contributor emissions every epoch. Better agent = more of the network improving = flywheel.</div>
       </div>
     </div>
+  </section>
+
+  <section id="lang-dist-section">
+    <h2>Language Distribution</h2>
+    <div id="lang-dist-bars" style="display:flex;flex-direction:column;gap:10px"></div>
   </section>
 
   <div class="stats-row" id="stats-row"></div>
@@ -1799,6 +1811,30 @@ async function load() {
       statsRow.appendChild(el);
     });
 
+    // Language distribution bars
+    const langBars = document.getElementById('lang-dist-bars');
+    if (langBars && globalData.categories) {
+      const cats = globalData.categories;
+      const total = Object.values(cats).reduce((s, v) => s + v, 0) || 1;
+      const catColors = { python: '#79c0ff', typescript: '#e3b341', rust: '#ffa198', go: '#59e89c', jvm: '#d2a8ff', ruby: '#ff9492' };
+      const catFull = { python: 'Python', typescript: 'TypeScript', rust: 'Rust', go: 'Go', jvm: 'JVM', ruby: 'Ruby' };
+      Object.entries(cats).sort((a, b) => b[1] - a[1]).forEach(([cat, count]) => {
+        const pct = (count / total * 100).toFixed(1);
+        const color = catColors[cat] || '#8b949e';
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;gap:12px;font-size:13px';
+        row.innerHTML = `
+          <span style="width:90px;color:${color};font-weight:600;font-size:12px">${catFull[cat] || cat}</span>
+          <div style="flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden">
+            <div style="height:100%;width:${pct}%;background:${color};border-radius:3px;transition:width 0.5s"></div>
+          </div>
+          <span style="width:55px;text-align:right;color:var(--muted);font-family:var(--mono);font-size:12px">${count}</span>
+          <span style="width:44px;text-align:right;color:var(--muted);font-size:11px">${pct}%</span>
+        `;
+        langBars.appendChild(row);
+      });
+    }
+
     // LB stats (leaderboard page)
     const lbStatsRow = document.getElementById('lb-stats-row');
     const oracleWeighted = d.oracle_score || 0;
@@ -1861,6 +1897,12 @@ async function load() {
         e.preventDefault();
         setPage(tab.dataset.page, true);
       });
+    });
+
+    // Wire logo to home
+    document.getElementById('logo-home-btn').addEventListener('click', e => {
+      e.preventDefault();
+      setPage('home', true);
     });
 
     // Wire problem search and sort (debounced — 1123 problems per render)
@@ -2163,6 +2205,9 @@ function buildSotaChart() {
 
   if (sotaChart) { sotaChart.destroy(); sotaChart = null; }
 
+  const sotaCanvas = document.getElementById('sota-chart');
+  const sotaCtx = sotaCanvas.getContext('2d');
+
   if (history.length === 0) {
     if (titleEl) titleEl.textContent = 'Difficulty Distribution';
     const bins = [
@@ -2182,7 +2227,12 @@ function buildSotaChart() {
     sotaChart = new Chart(document.getElementById('sota-chart'), {
       type: 'line',
       data: { labels: history.map(h => h.date), datasets: [
-        { label: 'SOTA score', data: history.map(h => h.score), borderColor: '#58a6ff', backgroundColor: 'rgba(88,166,255,0.10)', pointBackgroundColor: '#58a6ff', pointRadius: 4, fill: true, tension: 0.2 },
+        { label: 'SOTA score', data: history.map(h => h.score), borderColor: '#58a6ff', backgroundColor: (() => {
+  const grad = sotaCtx.createLinearGradient(0, 0, 0, sotaCanvas.offsetHeight || 200);
+  grad.addColorStop(0, 'rgba(88,166,255,0.3)');
+  grad.addColorStop(1, 'rgba(88,166,255,0.02)');
+  return grad;
+})(), pointBackgroundColor: '#58a6ff', pointRadius: 4, fill: true, tension: 0.2 },
         { label: 'Oracle upper bound', data: history.map(() => oracleScore), borderColor: '#3fb950', borderDash: [6, 3], pointRadius: 0, fill: false, tension: 0 },
       ]},
       options: { responsive: true, interaction: { mode: 'index', intersect: false }, plugins: { legend: { labels: { color: '#8b949e', font: { size: 12 } } }, tooltip: { callbacks: { afterBody: items => { const h = history[items[0]?.dataIndex]; return h ? [`Agent: ${h.agent}`, `Model: ${h.model}`] : []; } } } }, scales: { x: { ticks: { color: '#8b949e', font: { size: 11 } }, grid: { color: '#21262d' } }, y: { min: 0, max: Math.ceil(oracleScore * 1.05), ticks: { color: '#8b949e', font: { size: 11 } }, grid: { color: '#21262d' }, title: { display: true, text: 'Score / 30', color: '#8b949e', font: { size: 11 } } } } },
@@ -2199,6 +2249,7 @@ function initScoringPage() {
   const catColors = { python: '#79c0ff', typescript: '#e3b341', rust: '#ffa198', go: '#59e89c', jvm: '#d2a8ff', ruby: '#ff9492' };
   const catFull = { python: 'Python', typescript: 'TypeScript', rust: 'Rust', go: 'Go', jvm: 'JVM (Kotlin/Java)', ruby: 'Ruby' };
   const catGrid = document.getElementById('cat-breakdown');
+  const totalCat = Object.values(catCounts).reduce((s, v) => s + v, 0) || 1;
   Object.entries(catCounts).sort((a,b) => b[1]-a[1]).forEach(([cat, count]) => {
     const budget = catBudget[cat] || '?';
     const color = catColors[cat] || '#8b949e';
@@ -2206,7 +2257,15 @@ function initScoringPage() {
     const card = document.createElement('div');
     card.className = 'stat-card';
     card.style.cursor = 'pointer';
-    card.innerHTML = `<div class="label" style="color:${color}">${esc(label)}</div><div class="value" style="font-size:22px;color:${color}">${count}</div><div class="sub">${budget} sampled per eval</div>`;
+    const pctOfPool = (count / totalCat * 100).toFixed(0);
+    card.innerHTML = `
+      <div class="label" style="color:${color}">${esc(label)}</div>
+      <div class="value" style="font-size:22px;color:${color}">${count}</div>
+      <div style="height:3px;background:var(--border);border-radius:2px;margin:8px 0 6px">
+        <div style="height:100%;width:${pctOfPool}%;background:${color};border-radius:2px;transition:width 0.5s"></div>
+      </div>
+      <div class="sub">${budget} sampled per eval · ${pctOfPool}% of pool</div>
+    `;
     card.style.borderTop = `2px solid ${color}`;
     card.addEventListener('click', () => {
       setPage('problems', true);
