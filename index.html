@@ -2564,6 +2564,7 @@
           <tr data-ref="1" data-sota="1.9"><td class="muted" style="font-family:var(--mono)">1.9</td><td style="font-family:var(--mono);color:var(--accent)">1.9010</td><td class="muted">+0.001 above SOTA</td></tr>
         </tbody>
       </table>
+      <span id="crown-live-announce" role="status" aria-live="polite" aria-atomic="true" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0"></span>
     </div>
     <div class="info-box">
       The threshold and each submission's <code>crown_threshold</code> field are stored in the leaderboard JSON for full transparency.
@@ -4496,6 +4497,26 @@ function initScoringPage() {
       return a.id === 'crown-live-row' ? 1 : -1;
     });
     rows.forEach(r => ctTbody.appendChild(r));
+
+    // a11y: announce the LIVE row's new bracketing when it shifts slots so
+    // screen-reader users hear the position-in-curve change (silent sort otherwise).
+    const announceEl = document.getElementById('crown-live-announce');
+    if (announceEl && liveRow) {
+      const ordered = Array.from(ctTbody.querySelectorAll('tr'));
+      const liveIdx = ordered.indexOf(liveRow);
+      const refLabel = (tr) => tr ? (tr.querySelector('td:first-child')?.textContent || '').trim() : null;
+      const above = refLabel(ordered[liveIdx - 1]);
+      const below = refLabel(ordered[liveIdx + 1]);
+      let msg;
+      if (above && below) msg = `Crown leader at SOTA ${liveSota.toFixed(4)} — bracketed between ${above} and ${below}.`;
+      else if (above && !below) msg = `Crown leader at SOTA ${liveSota.toFixed(4)} — above all reference anchors (top of curve).`;
+      else if (!above && below) msg = `Crown leader at SOTA ${liveSota.toFixed(4)} — below first reference anchor ${below}.`;
+      else msg = `Crown leader at SOTA ${liveSota.toFixed(4)}.`;
+      if (announceEl.dataset.lastMsg !== msg) {
+        announceEl.dataset.lastMsg = msg;
+        announceEl.textContent = msg;
+      }
+    }
   }
 }
 
