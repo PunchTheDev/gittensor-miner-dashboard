@@ -1333,6 +1333,63 @@
       transition: background 0.1s;
     }
     .copy-btn:hover { background: rgba(88,166,255,0.2); }
+    /* Anti-Gaming patterns disclosure */
+    .ag-patterns-grid {
+      display: grid;
+      grid-template-columns: minmax(72px,auto) minmax(120px,auto) 1fr;
+      gap: 6px 12px;
+      padding: 4px 14px 10px;
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+      align-items: center;
+    }
+    .ag-pattern-lang {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+      background: rgba(125,133,144,0.10);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 2px 7px;
+      white-space: nowrap;
+      text-align: center;
+    }
+    .ag-pattern-keyword {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent);
+      white-space: nowrap;
+    }
+    .ag-pattern-diff {
+      font-family: var(--mono);
+      font-size: 11px;
+      background: rgba(248,81,73,0.08);
+      border-left: 2px solid var(--red, #f85149);
+      padding: 4px 8px;
+      color: var(--text);
+      border-radius: 0 3px 3px 0;
+      white-space: pre;
+      overflow-x: auto;
+    }
+    .ag-pattern-diff .ag-minus { color: var(--red, #f85149); font-weight: 600; }
+    .ag-caveat {
+      padding: 10px 14px 12px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 11.5px;
+      line-height: 1.55;
+    }
+    .ag-caveat strong { color: var(--text); font-weight: 600; }
+    .ag-caveat code {
+      font-family: var(--mono);
+      font-size: 10.5px;
+      background: rgba(125,133,144,0.12);
+      padding: 1px 5px;
+      border-radius: 3px;
+      color: var(--text);
+    }
     .model-card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -2128,6 +2185,39 @@
         <div class="metric-range">0.5 – 1.0</div>
         <div style="font-size:11px;font-weight:700;color:var(--red,#f85149);letter-spacing:0.04em;text-transform:uppercase;margin-bottom:6px">Penalizes: deleting test assertions to inflate pass rate</div>
         <div class="metric-desc">Graduated penalty for removing test assertions. ≤3 removed → 1.0 (noise tolerance). 4–8 removed → linear decay 0.9→0.5. &gt;8 removed → floor 0.5. Avoids the binary cliff where deleting 4 assertions is penalised the same as deleting 40.</div>
+        <details class="api-shape ag-patterns" id="ag-patterns-preview">
+          <summary>What counts as a removed assertion? <span class="api-shape-hint">12 keywords scanned across 6 language families</span></summary>
+          <div class="ag-patterns-grid">
+            <span class="ag-pattern-lang">Python</span>
+            <span class="ag-pattern-keyword">assert / assertEqual / assertRaises</span>
+            <span class="ag-pattern-diff"><span class="ag-minus">-    assert result == 42</span></span>
+
+            <span class="ag-pattern-lang">JS/TS</span>
+            <span class="ag-pattern-keyword">expect( / it( / test( / describe(</span>
+            <span class="ag-pattern-diff"><span class="ag-minus">-    expect(parseUrl(input)).toEqual(expected);</span></span>
+
+            <span class="ag-pattern-lang">Rust</span>
+            <span class="ag-pattern-keyword">#[test]</span>
+            <span class="ag-pattern-diff"><span class="ag-minus">-    #[test]
+-    fn parses_ipv6() { assert!(parse(&quot;::1&quot;).is_ok()); }</span></span>
+
+            <span class="ag-pattern-lang">Go</span>
+            <span class="ag-pattern-keyword">func Test</span>
+            <span class="ag-pattern-diff"><span class="ag-minus">-func TestParseURL(t *testing.T) { ... }</span></span>
+
+            <span class="ag-pattern-lang">JVM</span>
+            <span class="ag-pattern-keyword">@Test</span>
+            <span class="ag-pattern-diff"><span class="ag-minus">-    @Test public void parsesEmptyHost() { ... }</span></span>
+
+            <span class="ag-pattern-lang">Ruby</span>
+            <span class="ag-pattern-keyword">should. / must. / spec.</span>
+            <span class="ag-pattern-diff"><span class="ag-minus">-  it &quot;rejects malformed input&quot; do should.raise(ArgumentError) end</span></span>
+          </div>
+          <div class="ag-caveat">
+            <strong>Scope.</strong> Detection runs <strong>only on test files</strong> (paths matching <code>test_*.py</code>, <code>*_test.go</code>, <code>*.spec.ts</code>, <code>tests/**</code>, etc.) — touching production code never triggers the penalty.<br>
+            <strong>False-positive trap.</strong> The detector counts <em>any</em> removed line matching these keywords inside a test file — including legitimately deleting stale or broken tests as part of a refactor. If the reference PR keeps a test, deleting it costs you. Move tests with <code>git mv</code> + small in-place edits when you must restructure; bulk deletes look indistinguishable from gaming.
+          </div>
+        </details>
       </div>
       <div class="metric-card" id="mc-test-quality">
         <a class="mc-backlink" href="#s-formula" onclick="event.preventDefault(); document.getElementById('s-formula')?.scrollIntoView({behavior:'smooth',block:'start'});">↑ Formula</a>
