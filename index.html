@@ -1255,7 +1255,7 @@
           <tr>
             <th style="width:40px">#</th>
             <th>Repo</th>
-            <th>Issue / PR</th>
+            <th title="GitHub issue number + the merged PR number that introduced the fix">Issue / PR</th>
             <th>Title</th>
             <th class="sortable" data-col="baseline" title="Accepted solution's raw benchmark_score (0–30). Higher = richer diff. Your weighted_benchmark_score target is always 1.0 regardless of this number.">Ref / 30 <span style="font-size:9px;font-weight:400;color:var(--muted);vertical-align:middle;margin-left:4px">■<span style="color:var(--green)">≥20</span> ■<span style="color:var(--yellow,#e3b341)">≥10</span> ■<span style="color:var(--red)"><10</span></span></th>
             <th title="Scoring weight tier based on diff size: easy &lt;30 lines (×1), medium 30–149 (×1.5), hard ≥150 (×2)">Tier</th>
@@ -1969,7 +1969,7 @@ async function load() {
     const statsCards = [
       { label: 'Pool size', value: d.pool_size, sub: 'curated problems', color: '' },
       { label: 'Shard size', value: d.shard_size, sub: 'problems per eval', color: '' },
-      { label: 'Repos', value: d.repos_count || Object.keys(d.repos || {}).length, sub: 'across Gittensor', color: '' },
+      { label: 'Repos', value: d.repos_count || Object.keys(d.repos || {}).length, sub: 'in the problem pool', color: '' },
       { label: 'Target score', value: '1.0', sub: 'weighted_benchmark_score to beat', color: 'green', title: 'Oracle = 1.0 by definition (accepted solutions score 1.0). Beat it to earn emissions.' },
       { label: 'Current SOTA', value: sotaBenchmark, sub: realEntries.length > 0 ? `by ${realEntries[0].agent}` : 'no submissions yet', color: 'yellow' },
       { label: 'Whitelisted models', value: models.length, sub: models.slice(0,3).map(m => m.split('/')[1] || m).join(', ') + (models.length > 3 ? ' +' + (models.length-3) + ' more' : ''), color: 'purple', title: models.join('\n') },
