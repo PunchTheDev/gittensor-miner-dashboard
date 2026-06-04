@@ -2964,7 +2964,22 @@ function renderLb() {
   if (ctaEl) {
     if (realEntries.length === 0) {
       ctaEl.style.display = 'block';
-      ctaEl.innerHTML = `<div class="info-box">No scored agents yet — the oracle row below is the reference baseline (beat 1.0 to win). Be the first to claim rank 1: <a class="link" href="#/mining" onclick="event.preventDefault(); setPage('mining', true)">Start mining →</a> or read <a class="link" href="https://github.com/PunchTheDev/gittensor-base-miner/blob/main/CONTRIBUTING.md" target="_blank">CONTRIBUTING.md</a>.</div>`;
+      // Mirror the live crown-threshold math from Scoring · Anti-Copy section (see s-anticopy)
+      const liveSota = 0;
+      const liveThresh = liveSota + 0.02 * (2.0 - liveSota) / 2.0;
+      const threshTxt = liveThresh.toFixed(4);
+      ctaEl.innerHTML = `<div class="info-box" style="display:flex;flex-direction:column;gap:10px">
+        <div><strong>No scored agents yet.</strong> The preview row and oracle reference (below) show what the table will look like. Beat <strong>1.0</strong> on benchmark_score to outperform the oracle; beat the live crown_threshold to claim rank 1.</div>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-size:12px;font-family:var(--mono)">
+          <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px rgba(63,185,80,0.6);display:inline-block"></span><span style="color:var(--muted);font-size:10px;letter-spacing:0.5px">LIVE</span></span>
+          <span>SOTA = <strong>0.0000</strong></span>
+          <span style="color:var(--muted)">·</span>
+          <span>crown_threshold = <strong style="color:var(--accent)">${threshTxt}</strong></span>
+          <span style="color:var(--muted)">·</span>
+          <span>first valid score &gt; <strong>${threshTxt}</strong> wins it</span>
+        </div>
+        <div style="font-size:12px"><a class="link" href="#/mining" onclick="event.preventDefault(); setPage('mining', true)">Start mining →</a> &nbsp;·&nbsp; <a class="link" href="#/scoring" onclick="event.preventDefault(); setPage('scoring', true); setTimeout(()=>document.getElementById('s-anticopy')?.scrollIntoView({behavior:'smooth'}), 60)">How the crown_threshold decays as SOTA rises ↗</a> &nbsp;·&nbsp; <a class="link" href="https://github.com/PunchTheDev/gittensor-base-miner/blob/main/CONTRIBUTING.md" target="_blank">CONTRIBUTING.md ↗</a></div>
+      </div>`;
     } else {
       ctaEl.style.display = 'none';
     }
@@ -2986,6 +3001,27 @@ function renderLb() {
   const body = document.getElementById('leaderboard-body');
   body.innerHTML = '';
   const oracle = (globalData.oracle_score || 12.64);
+
+  // Ghost preview row: only when no submissions yet AND on page 1 — shows first-timers
+  // exactly what their rank-1 row will look like once they submit (vs the oracle baseline below).
+  if (realEntries.length === 0 && lbPage === 1) {
+    const ghost = document.createElement('tr');
+    ghost.className = 'lb-ghost-row';
+    ghost.style.cssText = 'background:rgba(88,166,255,0.04);border-top:1px dashed rgba(88,166,255,0.35);border-bottom:1px dashed rgba(88,166,255,0.35)';
+    ghost.title = 'Preview — your first submission will produce a row like this above the oracle';
+    ghost.innerHTML = `
+      <td><span class="rank rank-1" style="opacity:0.55">🥇</span></td>
+      <td style="font-weight:500"><em class="muted">your-agent</em> <span style="font-size:10px;color:var(--accent);margin-left:6px;border:1px dashed var(--accent);padding:1px 5px;border-radius:3px;letter-spacing:0.5px">PREVIEW</span></td>
+      <td><div class="score-bar-wrap"><span class="score" style="font-family:var(--mono);color:var(--muted);font-size:11px;letter-spacing:0.5px">YOUR_SCORE</span><div class="score-bar" style="opacity:0.6"><div class="score-bar-fill" style="width:55%;background:repeating-linear-gradient(90deg,rgba(88,166,255,0.55) 0 5px,rgba(88,166,255,0.15) 5px 10px)"></div></div></div></td>
+      <td class="muted" style="font-size:12px;font-family:var(--mono)">—</td>
+      <td style="font-size:12px"><span style="color:var(--green);opacity:0.75" title="Crown bonus on your first valid submission > 0.0200">+gain</span></td>
+      <td style="font-size:12px"><span class="muted" title="≤10k output tokens preserves 1.000 efficiency factor">1.000</span></td>
+      <td><span class="badge-model" style="opacity:0.55">your model</span></td>
+      <td class="muted" style="font-size:12px;white-space:nowrap">—</td>
+      <td class="muted" style="font-size:11px"><em>this is where your row will land</em></td>
+    `;
+    body.appendChild(ghost);
+  }
 
   pageItems.forEach(row => {
     const isOracle = row.rank === null;
