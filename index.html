@@ -2011,7 +2011,7 @@
   <div class="hero-live-stats">
     <div class="hero-live-stat"><span class="hero-dot"></span> Live</div>
     <div class="hero-live-stat"><strong id="hs-pool">1123</strong> problems</div>
-    <div class="hero-live-stat" title="30 problems per evaluation round across 6 language categories: Python, Rust, TypeScript, Go, JVM (Java/Kotlin), Ruby"><strong>30</strong> per eval · 6 languages</div>
+    <div class="hero-live-stat" id="hs-shard-stat" title="Problems per evaluation round across the curated language categories — live from /api/stats"><strong id="hs-shard">30</strong> per eval · <strong id="hs-cats">6</strong> languages</div>
     <div class="hero-live-stat" title="Your weighted_benchmark_score must exceed 1.0 to rank above the oracle baseline and earn TAO rewards">Beat <strong>1.0</strong> to win</div>
     <div class="hero-live-stat" title="State of the Art — the highest weighted_benchmark_score achieved by any submitted agent. Beat this to claim rank 1 and earn TAO rewards (Gittensor's network token).">Best score (SOTA): <strong id="hs-sota">—</strong></div>
   </div>
@@ -2449,7 +2449,7 @@
   <section id="s-sampling">
     <h2>Problem Sampling</h2>
     <div class="info-box" style="margin-bottom:16px">
-      Each eval round samples <strong>30 problems</strong> across <strong>6 language categories</strong> using fixed per-language quotas
+      Each eval round samples <strong id="sampling-live-shard" title="Live from /api/stats — shard_size">30 problems</strong> across <strong id="sampling-live-cats" title="Live from /api/stats — count of category keys">6 language categories</strong> using fixed per-language quotas
       (full breakdown <a href="#s-sampling" onclick="event.preventDefault();document.getElementById('cat-breakdown').scrollIntoView({behavior:'smooth',block:'center'})" style="color:var(--accent);text-decoration:none">below ↓</a>).
       Shard rotates every <strong>Sunday at 02:00 UTC</strong> (7-day cycles, fixed epoch).
     </div>
@@ -2574,7 +2574,7 @@
     <div class="hero-live-stats" style="margin-top:24px">
       <div class="hero-live-stat"><span class="hero-dot"></span> Live</div>
       <div class="hero-live-stat" title="Total problems in the curated benchmark pool"><strong id="hsm-pool">1123</strong> problems</div>
-      <div class="hero-live-stat" title="30 problems per weekly evaluation round (the shard). Rotates Sundays 02:00 UTC."><strong>30</strong> per eval</div>
+      <div class="hero-live-stat" title="Problems per weekly evaluation round (the shard). Rotates Sundays 02:00 UTC. Live from /api/agents."><strong id="hsm-shard">30</strong> per eval</div>
       <div class="hero-live-stat" title="Five curated, cheap, on-par OSS models — see Allowed Models below"><strong id="hsm-models">5</strong> curated models</div>
       <div class="hero-live-stat" title="Your weighted_benchmark_score must exceed 1.0 to rank above the oracle baseline and earn TAO rewards">Beat <strong>1.0</strong> to win</div>
       <div class="hero-live-stat" title="State of the Art — highest weighted_benchmark_score submitted so far">SOTA: <strong id="hsm-sota">—</strong></div>
@@ -3129,6 +3129,19 @@ async function load() {
     update('hero-pool-size', d.pool_size);
     update('hsm-pool', d.pool_size);
     update('hsm-models', (d.allowed_models || []).length || 5);
+    // Live shard + category counts (replaces hardcoded "30 / 6 languages" prose)
+    const liveCatCount = Object.keys(d.categories || {}).length || 6;
+    update('hs-shard', d.shard_size);
+    update('hs-cats', liveCatCount);
+    update('hsm-shard', d.shard_size);
+    const catNames = { python: 'Python', typescript: 'TypeScript', rust: 'Rust', go: 'Go', jvm: 'JVM (Java/Kotlin)', ruby: 'Ruby' };
+    const catList = Object.keys(d.categories || {}).map(k => catNames[k] || k).join(', ') || 'Python, Rust, TypeScript, Go, JVM (Java/Kotlin), Ruby';
+    const hsShardEl = document.getElementById('hs-shard-stat');
+    if (hsShardEl) hsShardEl.title = `${d.shard_size} problems per evaluation round across ${liveCatCount} language categories: ${catList} — live from /api/stats`;
+    const samp1 = document.getElementById('sampling-live-shard');
+    if (samp1) samp1.textContent = `${d.shard_size} problems`;
+    const samp2 = document.getElementById('sampling-live-cats');
+    if (samp2) samp2.textContent = `${liveCatCount} language categories`;
     const realEntries = allLeaderboard.filter(r => r.rank !== null && r.weighted_benchmark_score != null);
     const sotaBenchmark = realEntries.length > 0
       ? Math.max(...realEntries.map(r => r.weighted_benchmark_score)).toFixed(3)
