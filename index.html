@@ -339,7 +339,7 @@
 
     /* Glossary grid on Scoring page */
     .glossary-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
-    .glossary-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px; scroll-margin-top: 72px; transition: border-color 0.2s, box-shadow 0.2s; }
+    .glossary-card { position: relative; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px; scroll-margin-top: 72px; transition: border-color 0.2s, box-shadow 0.2s; }
     .glossary-card.gl-flash { animation: glFlash 1.2s ease-out; }
     @keyframes glFlash {
       0%   { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(88,166,255,0.32); }
@@ -356,6 +356,10 @@
     .glossary-mc-link-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); opacity: 0.7; margin-right: 2px; }
     .glossary-mc-link a { font-family: var(--mono); font-size: 11px; color: var(--green); background: var(--surface); border: 1px solid var(--border); border-radius: 3px; padding: 2px 7px; text-decoration: none; transition: color 0.15s, border-color 0.15s, background 0.15s; }
     .glossary-mc-link a:hover { color: var(--green); border-color: var(--green); background: rgba(63,185,80,0.08); }
+    /* Transient breadcrumb chip — fades in on a glossary card for ~6s after the user arrives via a metric-card ↓ Glossary click. Returns directly to #s-formula with the lb-cta-arrived flash, saving the user the intermediate mc-* hop. */
+    .gl-breadcrumb { position: absolute; top: 6px; right: 8px; font-family: var(--mono); font-size: 9.5px; color: var(--accent); background: rgba(88,166,255,0.10); border: 1px solid rgba(88,166,255,0.40); border-radius: 999px; padding: 1px 9px; text-decoration: none; letter-spacing: 0.04em; opacity: 0; transform: translateY(-3px); pointer-events: none; transition: opacity 0.25s ease, transform 0.25s ease, background 0.15s ease, border-color 0.15s ease; z-index: 2; }
+    .gl-breadcrumb.show { opacity: 1; transform: none; pointer-events: auto; }
+    .gl-breadcrumb:hover, .gl-breadcrumb:focus-visible { background: rgba(88,166,255,0.22); border-color: var(--accent); outline: none; }
 
     /* ── Language / category badges ─────────────────────── */
     .lang-badge {
@@ -4656,7 +4660,7 @@ function initScoringPage() {
   if (!window._crownPhaseLinkWired) {
     window._crownPhaseLinkWired = true;
     document.addEventListener('click', (ev) => {
-      const a = ev.target.closest('a.crown-phase-chip[data-anchor], a.crown-back-chip[data-anchor]');
+      const a = ev.target.closest('a.crown-phase-chip[data-anchor], a.crown-back-chip[data-anchor], a.gl-breadcrumb[data-anchor]');
       if (!a) return;
       ev.preventDefault();
       const el = document.getElementById(a.getAttribute('data-anchor'));
@@ -4670,6 +4674,22 @@ function initScoringPage() {
   }
   // Bidirectional bridge: metric-card ↓ Glossary  AND  glossary-card → Factor Details
   // Both stay on the Scoring page, both use smooth-scroll + class-based flash for SPA reliability.
+  // Side-effect on toGl arrival: surface a transient "← Formula" breadcrumb chip on the destination glossary card
+  // (~6s) so the user can return in one click without bouncing back through the intermediate mc-* card.
+  if (!window._glBreadcrumbInjected) {
+    window._glBreadcrumbInjected = true;
+    document.querySelectorAll('.glossary-card .glossary-mc-link').forEach(link => {
+      const card = link.closest('.glossary-card');
+      if (!card || card.querySelector('.gl-breadcrumb')) return;
+      const bc = document.createElement('a');
+      bc.className = 'gl-breadcrumb';
+      bc.href = '#s-formula';
+      bc.setAttribute('data-anchor', 's-formula');
+      bc.textContent = '← Formula';
+      bc.title = 'Back to the formula block — you arrived here from a Factor Details card; this skips the intermediate hop.';
+      card.appendChild(bc);
+    });
+  }
   if (!window._mcGlBridgeWired) {
     window._mcGlBridgeWired = true;
     document.addEventListener('click', (ev) => {
@@ -4687,6 +4707,15 @@ function initScoringPage() {
       card.classList.remove(flashClass);
       void card.offsetWidth;
       card.classList.add(flashClass);
+      // Transient breadcrumb on the destination glossary card (only on mc-* → gl-* arrival)
+      if (toGl) {
+        const bc = card.querySelector('.gl-breadcrumb');
+        if (bc) {
+          if (bc._hideT) { clearTimeout(bc._hideT); bc._hideT = null; }
+          bc.classList.add('show');
+          bc._hideT = setTimeout(() => { bc.classList.remove('show'); bc._hideT = null; }, 6000);
+        }
+      }
     });
   }
   const d = globalData;
