@@ -362,7 +362,11 @@
     .gl-breadcrumb:hover, .gl-breadcrumb:focus-visible { background: rgba(88,166,255,0.22); border-color: var(--accent); outline: none; }
     /* Copy-link chip — same timing/positioning rhythm as .gl-breadcrumb (transient, fades with it for ~6s post-arrival), green palette to signal "share this canonical URL" vs the blue "go back" return-link. Sits 4px to the left of the breadcrumb. */
     .gl-copy-chip { position: absolute; top: 6px; right: 92px; font-family: var(--mono); font-size: 9.5px; color: var(--green); background: rgba(63,185,80,0.10); border: 1px solid rgba(63,185,80,0.40); border-radius: 999px; padding: 1px 9px; cursor: pointer; letter-spacing: 0.04em; opacity: 0; transform: translateY(-3px); pointer-events: none; transition: opacity 0.25s ease, transform 0.25s ease, background 0.15s ease, border-color 0.15s ease, color 0.15s ease; z-index: 2; user-select: none; }
+    /* Cards without an mc-* breadcrumb (10/15 glossary cards) have no neighbor chip — slide the copy chip flush right so it doesn't float in a gap. */
+    .gl-copy-chip.gl-copy-chip--solo { right: 8px; }
     .gl-copy-chip.show { opacity: 1; transform: none; pointer-events: auto; }
+    /* Hover discoverability — once the copy chip exists on every glossary card, surface it for any hovered card so the share affordance is always findable (transient 6s arrival show still works for click-arrival flow). */
+    .glossary-card:hover .gl-copy-chip { opacity: 1; transform: none; pointer-events: auto; }
     .gl-copy-chip:hover, .gl-copy-chip:focus-visible { background: rgba(63,185,80,0.22); border-color: var(--green); outline: none; }
     .gl-copy-chip.copied { background: rgba(63,185,80,0.32); border-color: var(--green); color: #b7f5c1; }
 
@@ -4721,6 +4725,7 @@ function initScoringPage() {
   // (~6s) so the user can return in one click without bouncing back through the intermediate mc-* card.
   if (!window._glBreadcrumbInjected) {
     window._glBreadcrumbInjected = true;
+    // Breadcrumb stays scoped to cards with a .glossary-mc-link (only those have an "intermediate mc-* hop" to skip back to).
     document.querySelectorAll('.glossary-card .glossary-mc-link').forEach(link => {
       const card = link.closest('.glossary-card');
       if (!card || card.querySelector('.gl-breadcrumb')) return;
@@ -4731,10 +4736,15 @@ function initScoringPage() {
       bc.textContent = '← Formula';
       bc.title = 'Back to the formula block — you arrived here from a Factor Details card; this skips the intermediate hop.';
       card.appendChild(bc);
-      // Copy-link chip — surfaces the canonical #gl-<id> URL on the user's clipboard so they can share/refresh
-      // to the exact same destination state (handleGlDeepLink replays the scroll/flash/breadcrumb on reload).
+    });
+    // Copy-link chip — injected on ALL glossary cards (every gl-<id> has a canonical deep-link URL since step 337
+    // routed #gl-* through handleGlDeepLink). Cards without an adjacent breadcrumb get the --solo modifier so the
+    // chip sits flush right (no empty gap where the breadcrumb would have been).
+    document.querySelectorAll('.glossary-card[id^="gl-"]').forEach(card => {
+      if (card.querySelector('.gl-copy-chip')) return;
       const cp = document.createElement('span');
       cp.className = 'gl-copy-chip';
+      if (!card.querySelector('.glossary-mc-link')) cp.classList.add('gl-copy-chip--solo');
       cp.setAttribute('role', 'button');
       cp.setAttribute('tabindex', '0');
       cp.dataset.glId = card.id;
