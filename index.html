@@ -1026,6 +1026,19 @@
     .difficulty-table th { text-align: left; padding: 8px 14px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); background: var(--surface2); border-bottom: 1px solid var(--border); }
     .difficulty-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); }
     .difficulty-table tr:last-child td { border-bottom: none; }
+    /* ── Difficulty-weighting tier rows (clickable → Problems filter) ─ */
+    .difficulty-table tr.tier-row-link { cursor: pointer; transition: background 0.12s ease; }
+    .difficulty-table tr.tier-row-link td:first-child { border-left: 2px solid transparent; transition: border-left-color 0.12s ease; }
+    .difficulty-table tr.tier-row-link:hover { background: rgba(88,166,255,0.04); }
+    .difficulty-table tr.tier-row-link:hover td:first-child { border-left-color: var(--accent); }
+    .tier-live-count { display: block; margin-top: 6px; font-size: 11px; color: var(--muted); font-family: var(--mono); }
+    .tier-live-count strong { color: var(--text); font-weight: 600; }
+    .tier-row-filter { display: inline-block; margin-left: 10px; padding: 2px 7px; background: rgba(88,166,255,0.12); color: var(--accent); border: 1px solid rgba(88,166,255,0.25); border-radius: 3px; font-size: 10px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; opacity: 0; transform: translateX(-3px); transition: opacity 0.15s ease, transform 0.15s ease; vertical-align: middle; }
+    .difficulty-table tr.tier-row-link:hover .tier-row-filter { opacity: 1; transform: translateX(0); }
+    .diff-chart-caption { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin: 20px 0 6px; padding: 0 2px; }
+    .diff-chart-caption .dcc-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 600; }
+    .diff-chart-caption .dcc-lens { font-size: 11px; color: var(--accent); text-align: right; }
+    .diff-chart-caption .dcc-lens strong { color: var(--text); font-family: var(--mono); }
 
     /* ── Score calculator ─────────────────────────────────── */
     .calc-row { margin-bottom: 18px; }
@@ -1837,26 +1850,35 @@
   <section id="s-difficulty">
     <h2>Difficulty Weighting</h2>
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:16px">
-      <table class="difficulty-table">
+      <table class="difficulty-table" id="difficulty-tier-table">
         <thead><tr><th>Tier</th><th>Condition</th><th>Weight</th><th>Rationale</th></tr></thead>
         <tbody>
-          <tr>
-            <td><span class="diff-badge diff-hard">hard ×2</span></td>
+          <tr class="tier-row-link" data-tier="hard" title="Click to filter the Problems page to the hard tier">
+            <td>
+              <span class="diff-badge diff-hard">hard ×2</span>
+              <span class="tier-live-count" data-tier-count="hard">—</span>
+            </td>
             <td class="muted">≥150 added lines</td>
             <td style="color:var(--red);font-family:var(--mono);font-weight:600">2.0×</td>
-            <td class="muted" style="font-size:12px">Broad refactors, multi-file changes, new subsystems</td>
+            <td class="muted" style="font-size:12px">Broad refactors, multi-file changes, new subsystems<span class="tier-row-filter">→ Filter</span></td>
           </tr>
-          <tr>
-            <td><span class="diff-badge diff-medium">medium ×1.5</span></td>
+          <tr class="tier-row-link" data-tier="medium" title="Click to filter the Problems page to the medium tier">
+            <td>
+              <span class="diff-badge diff-medium">medium ×1.5</span>
+              <span class="tier-live-count" data-tier-count="medium">—</span>
+            </td>
             <td class="muted">30–149 added lines</td>
             <td style="color:var(--yellow);font-family:var(--mono);font-weight:600">1.5×</td>
-            <td class="muted" style="font-size:12px">Non-trivial logic changes, moderate scope</td>
+            <td class="muted" style="font-size:12px">Non-trivial logic changes, moderate scope<span class="tier-row-filter">→ Filter</span></td>
           </tr>
-          <tr>
-            <td><span class="diff-badge diff-easy">easy ×1</span></td>
+          <tr class="tier-row-link" data-tier="easy" title="Click to filter the Problems page to the easy tier">
+            <td>
+              <span class="diff-badge diff-easy">easy ×1</span>
+              <span class="tier-live-count" data-tier-count="easy">—</span>
+            </td>
             <td class="muted">&lt;30 added lines</td>
             <td style="color:var(--green);font-family:var(--mono);font-weight:600">1.0×</td>
-            <td class="muted" style="font-size:12px">Targeted fixes, small logic changes</td>
+            <td class="muted" style="font-size:12px">Targeted fixes, small logic changes<span class="tier-row-filter">→ Filter</span></td>
           </tr>
         </tbody>
       </table>
@@ -1868,7 +1890,11 @@
       More nuanced measures (cyclomatic complexity, cross-file impact, test count) are on the roadmap.
       Until then, the proxy is transparent, deterministic, and documented.
     </div>
-    <div class="chart-wrap" style="margin-top:16px">
+    <div class="diff-chart-caption">
+      <span class="dcc-label">Different lens — oracle-score distribution</span>
+      <span class="dcc-lens">Low score = harder problem · all <strong id="diff-chart-pool-count">—</strong> problems binned by intrinsic difficulty (not by diff size)</span>
+    </div>
+    <div class="chart-wrap" style="margin-top:6px">
       <canvas id="diff-chart" height="80"></canvas>
     </div>
   </section>
@@ -3175,6 +3201,32 @@ function initScoringPage() {
     });
     catGrid.appendChild(card);
   });
+
+  // Difficulty-weighting table: populate live tier counts + wire click → Problems filter
+  const tierTable = document.getElementById('difficulty-tier-table');
+  if (tierTable && !tierTable.dataset.init) {
+    tierTable.dataset.init = '1';
+    const tierCounts = d.difficulty_counts || {};
+    const tierTotal = Object.values(tierCounts).reduce((s, v) => s + v, 0) || 0;
+    ['hard', 'medium', 'easy'].forEach(tier => {
+      const el = tierTable.querySelector(`[data-tier-count="${tier}"]`);
+      if (!el) return;
+      const n = tierCounts[tier] || 0;
+      const pct = tierTotal > 0 ? Math.round((n / tierTotal) * 100) : 0;
+      el.innerHTML = `<strong>${n}</strong> problems · ${pct}% of pool`;
+    });
+    tierTable.querySelectorAll('tr.tier-row-link').forEach(row => {
+      row.addEventListener('click', () => {
+        const tier = row.dataset.tier;
+        setPage('problems', true);
+        document.querySelectorAll('.diff-chip').forEach(c => c.classList.toggle('active', (c.dataset.diff || '') === tier));
+        activeDiff = tier;
+        renderProblems();
+      });
+    });
+    const poolEl = document.getElementById('diff-chart-pool-count');
+    if (poolEl) poolEl.textContent = (d.pool_size || tierTotal).toLocaleString();
+  }
 
   // Difficulty distribution chart on scoring page
   if (!diffChart) {
