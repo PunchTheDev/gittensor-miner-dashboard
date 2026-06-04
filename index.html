@@ -2361,7 +2361,7 @@ function renderLb() {
   if (ctaEl) {
     if (realEntries.length === 0) {
       ctaEl.style.display = 'block';
-      ctaEl.innerHTML = `<div class="info-box">No scored agents yet — the oracle row below is the reference baseline (weighted_benchmark_score = 1.0). Beat it to claim rank 1. <a class="link" href="https://github.com/PunchTheDev/gittensor-base-miner/blob/main/CONTRIBUTING.md" target="_blank">Submit the first agent →</a></div>`;
+      ctaEl.innerHTML = `<div class="info-box">No scored agents yet — the oracle row below is the reference baseline (weighted_benchmark_score = 1.0). Beat it to claim rank 1. <a class="link" href="#/mining" onclick="event.preventDefault(); setPage('mining', true)">Start mining →</a> or read <a class="link" href="https://github.com/PunchTheDev/gittensor-base-miner/blob/main/CONTRIBUTING.md" target="_blank">CONTRIBUTING.md</a> to submit.</div>`;
     } else {
       ctaEl.style.display = 'none';
     }
@@ -2949,34 +2949,31 @@ function openDrawer(p, pushHash = true) {
     const baselineChip = hasBaseline
       ? `<div class="score-chip"><div class="chip-label">Oracle quality (0–30)</div><div class="chip-value">${p.baseline_score.toFixed(2)}</div></div>`
       : '';
-    const dasChips = hasDas ? `
-      <div class="score-chip"><div class="chip-label">DAS match</div><div class="chip-value">${(p.das_score || 0).toFixed(3)}</div></div>
-      <div class="score-chip"><div class="chip-label">DAS base</div><div class="chip-value">${(p.das_base_score || 0).toFixed(2)}</div></div>
-      <div class="score-chip"><div class="chip-label">DAS token</div><div class="chip-value">${(p.das_token_score || 0).toFixed(2)}</div></div>
-      <div class="score-chip"><div class="chip-label">DAS structural</div><div class="chip-value">${(p.das_structural_score || 0).toFixed(2)}</div></div>
-      ${p.das_total_nodes ? `<div class="score-chip"><div class="chip-label">Nodes</div><div class="chip-value">${p.das_total_nodes}</div></div>` : ''}
-    ` : '';
-    // Formula breakdown: show src_tokens and the scoring equation
-    let formulaHtml = '';
-    if (hasBaseline && p.src_token_score != null) {
-      const srcTok = p.src_token_score;
-      const base25 = (25 * (1 - Math.exp(-srcTok / 58.0))).toFixed(2);
-      const bonus = p.total_token_score != null
-        ? (Math.min(p.total_token_score / 1500, 1) * 5).toFixed(2)
-        : null;
-      const bonusPart = bonus !== null ? ` + ${bonus} bonus` : '';
-      formulaHtml = `
-        <div style="margin-top:10px;font-size:12px;color:var(--muted);font-family:var(--mono);background:var(--bg);border-radius:4px;padding:8px 12px;line-height:1.8">
-          src_tokens = ${srcTok.toFixed(0)}<br>
-          25 × (1 − e<sup>−${srcTok.toFixed(0)}/58</sup>) = ${base25}${bonusPart}<br>
-          oracle quality = ${p.baseline_score.toFixed(2)} / 30
-        </div>`;
+    // Build collapsible DAS internals
+    let dasInternals = '';
+    if (hasDas) {
+      const dasRows = [
+        `<div class="score-chip"><div class="chip-label">DAS match</div><div class="chip-value">${(p.das_score || 0).toFixed(3)}</div></div>`,
+        `<div class="score-chip"><div class="chip-label">DAS base</div><div class="chip-value">${(p.das_base_score || 0).toFixed(2)}</div></div>`,
+        `<div class="score-chip"><div class="chip-label">DAS token</div><div class="chip-value">${(p.das_token_score || 0).toFixed(2)}</div></div>`,
+        `<div class="score-chip"><div class="chip-label">DAS structural</div><div class="chip-value">${(p.das_structural_score || 0).toFixed(2)}</div></div>`,
+        p.das_total_nodes ? `<div class="score-chip"><div class="chip-label">Nodes</div><div class="chip-value">${p.das_total_nodes}</div></div>` : '',
+      ].join('');
+      let formulaRow = '';
+      if (hasBaseline && p.src_token_score != null) {
+        const srcTok = p.src_token_score;
+        const base25 = (25 * (1 - Math.exp(-srcTok / 58.0))).toFixed(2);
+        const bonus = p.total_token_score != null ? (Math.min(p.total_token_score / 1500, 1) * 5).toFixed(2) : null;
+        const bonusPart = bonus !== null ? ` + ${bonus} bonus` : '';
+        formulaRow = `<div style="margin-top:8px;font-size:11px;color:var(--muted);font-family:var(--mono);background:var(--bg);border-radius:4px;padding:6px 10px;line-height:1.8">src_tokens = ${srcTok.toFixed(0)}<br>25 × (1 − e<sup>−${srcTok.toFixed(0)}/58</sup>) = ${base25}${bonusPart}<br>oracle quality = ${p.baseline_score.toFixed(2)} / 30</div>`;
+      }
+      dasInternals = `<details style="margin-top:8px"><summary style="font-size:11px;color:var(--muted);cursor:pointer;user-select:none;list-style:none;display:flex;align-items:center;gap:4px"><span>▶ Gittensor validator components</span></summary><div style="margin-top:8px"><div class="score-grid">${dasRows}</div>${formulaRow}</div></details>`;
     }
     scoreSection.innerHTML = `
       <div class="drawer-section-title">Oracle quality signal</div>
-      <div class="score-grid">${baselineChip}${dasChips}</div>
-      ${formulaHtml}
-      <div style="margin-top:8px;font-size:11px;color:var(--muted)">This is the oracle (accepted solution) quality score — the denominator in <code>relative_score = your_quality / ${hasBaseline ? p.baseline_score.toFixed(2) : 'oracle'}</code>. Your <strong>benchmark_score = test_pass_rate × relative_score × anti_gaming × tqf</strong>. DAS values are Gittensor validator raw components.</div>
+      <div class="score-grid">${baselineChip}</div>
+      <div style="margin-top:6px;font-size:11px;color:var(--muted)">Denominator in <code>relative_score = your_quality / ${hasBaseline ? p.baseline_score.toFixed(2) : 'oracle'}</code>. Beat this with better implementation quality.</div>
+      ${dasInternals}
     `;
     body.appendChild(scoreSection);
   }
