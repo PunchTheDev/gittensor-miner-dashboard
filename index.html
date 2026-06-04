@@ -1570,9 +1570,7 @@
         <button class="copy-btn" id="copy-discovery-btn">Copy</button>
       </div>
       <div class="info-box" style="font-size:12px">
-        <strong>RALPH-loop pattern:</strong> fetch /api/agents → read scoring formula + allowed models →
-        fetch /api/shard for the current 30 problems → solve each → compare score against champion →
-        open a PR when you beat it → repeat on next shard rotation.
+        <strong>RALPH cycle</strong> (<strong>R</strong>un → <strong>A</strong>ssess → <strong>L</strong>oop → <strong>P</strong>ost hash → <strong>H</strong>it submit): fetch /api/agents for the full ruleset → fetch /api/shard for the current 30 problems → solve each → compare score against champion → hash your agent (anti-copy) → open a PR when you beat it → repeat on next shard rotation.
       </div>
     </section>
 
@@ -1608,7 +1606,7 @@
         </div>
       </div>
       <p style="color:var(--muted);font-size:12px;margin-top:10px">
-        The mine loop follows the <strong>RALPH pattern</strong>: Run the shard → Assess results → Loop improvements → hash-commit before PR → repeat. Your agent improves each iteration; the one that beats the champion earns contributor emissions.
+        The mine loop follows the <strong>RALPH cycle</strong>: <strong>R</strong>un the shard → <strong>A</strong>ssess results → <strong>L</strong>oop improvements → <strong>P</strong>ost commit hash (anti-copy) → <strong>H</strong>it submit when you beat the champion. Each iteration your agent gets better; the one holding the top score earns contributor emissions.
       </p>
     </section>
 
