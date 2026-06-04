@@ -356,6 +356,14 @@
     .glossary-mc-link-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); opacity: 0.7; margin-right: 2px; }
     .glossary-mc-link a { font-family: var(--mono); font-size: 11px; color: var(--green); background: var(--surface); border: 1px solid var(--border); border-radius: 3px; padding: 2px 7px; text-decoration: none; transition: color 0.15s, border-color 0.15s, background 0.15s; }
     .glossary-mc-link a:hover { color: var(--green); border-color: var(--green); background: rgba(63,185,80,0.08); }
+    /* Glossary → deeper home-section link (accent-blue to distinguish from green factor-card chips). Same layout grammar as .glossary-mc-link but points to a page section (#s-*) rather than a metric-card (#mc-*). */
+    .glossary-section-link { margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--border); display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+    .glossary-section-link-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); opacity: 0.7; margin-right: 2px; }
+    .glossary-section-link a { font-family: var(--mono); font-size: 11px; color: var(--accent); background: var(--surface); border: 1px solid var(--border); border-radius: 3px; padding: 2px 7px; text-decoration: none; transition: color 0.15s, border-color 0.15s, background 0.15s; }
+    .glossary-section-link a:hover { color: var(--accent); border-color: var(--accent); background: rgba(88,166,255,0.08); }
+    /* Section-arrival flash — destination section h2 briefly glows accent-blue when arrived via a glossary-section-link click. Reuses the lb-cta-arrived timing rhythm (1.2s) for consistency with crown↔formula and mc↔gl round-trips. */
+    .s-flash { animation: sFlashGlow 1.2s ease-out; }
+    @keyframes sFlashGlow { 0% { box-shadow: 0 0 0 0 rgba(88,166,255,0.0); background: transparent; } 20% { box-shadow: 0 0 0 6px rgba(88,166,255,0.18); background: rgba(88,166,255,0.06); border-radius: 4px; } 100% { box-shadow: 0 0 0 0 rgba(88,166,255,0.0); background: transparent; } }
     /* Transient breadcrumb chip — fades in on a glossary card for ~6s after the user arrives via a metric-card ↓ Glossary click. Returns directly to #s-formula with the lb-cta-arrived flash, saving the user the intermediate mc-* hop. */
     .gl-breadcrumb { position: absolute; top: 6px; right: 8px; font-family: var(--mono); font-size: 9.5px; color: var(--accent); background: rgba(88,166,255,0.10); border: 1px solid rgba(88,166,255,0.40); border-radius: 999px; padding: 1px 9px; text-decoration: none; letter-spacing: 0.04em; opacity: 0; transform: translateY(-3px); pointer-events: none; transition: opacity 0.25s ease, transform 0.25s ease, background 0.15s ease, border-color 0.15s ease; z-index: 2; }
     .gl-breadcrumb.show { opacity: 1; transform: none; pointer-events: auto; }
@@ -2462,11 +2470,13 @@
         <div class="glossary-term">Shard</div>
         <div class="glossary-def">A subset of problems sampled from the full pool each week. Only the shard's problems count toward scoring this round — see Sampling below. The full pool is 1123 problems; the shard is 30.</div>
         <div class="glossary-seealso"><span class="glossary-seealso-label">See also</span><a href="#gl-epoch">Epoch</a><a href="#gl-das">DAS</a></div>
+        <div class="glossary-section-link"><span class="glossary-section-link-label">Deeper</span><a href="#s-sampling" data-section-target="s-sampling" title="Jump to the Problem Sampling section — per-category quotas, full pool vs. shard, and rotation schedule">★ Sampling section ↗</a></div>
       </div>
       <div class="glossary-card" id="gl-epoch">
         <div class="glossary-term">Epoch</div>
         <div class="glossary-def">One scoring round — a weekly cycle where the shard is fixed, miners submit, and TAO rewards are distributed at the end. Currently 7 days, rotating Sundays at 02:00 UTC.</div>
         <div class="glossary-seealso"><span class="glossary-seealso-label">See also</span><a href="#gl-shard">Shard</a><a href="#gl-tao">TAO</a></div>
+        <div class="glossary-section-link"><span class="glossary-section-link-label">Deeper</span><a href="#s-sampling" data-section-target="s-sampling" title="Jump to the Problem Sampling section — the epoch's Sunday 02:00 UTC rotation schedule lives in the intro info-box">★ Sampling section ↗</a></div>
       </div>
       <div class="glossary-card" id="gl-ralph">
         <div class="glossary-term">RALPH</div>
@@ -2477,6 +2487,7 @@
         <div class="glossary-term">DAS</div>
         <div class="glossary-def">"Difficulty-Adjusted Sampling" — the pool rotation mechanism that re-weights problem selection toward harder, less-explored regions of the corpus to keep the benchmark fresh and prevent stale-shard farming.</div>
         <div class="glossary-seealso"><span class="glossary-seealso-label">See also</span><a href="#gl-shard">Shard</a><a href="#gl-epoch">Epoch</a></div>
+        <div class="glossary-section-link"><span class="glossary-section-link-label">Deeper</span><a href="#s-sampling" data-section-target="s-sampling" title="Jump to the Problem Sampling section — DAS reweights what flows into each weekly shard">★ Sampling section ↗</a></div>
       </div>
       <div class="glossary-card" id="gl-tao">
         <div class="glossary-term">TAO</div>
@@ -2755,7 +2766,7 @@
 
   </section>
 
-  <section id="s-sampling">
+  <section id="s-sampling" style="scroll-margin-top:72px">
     <h2>Problem Sampling</h2>
     <div class="info-box" style="margin-bottom:16px">
       Each eval round samples <strong id="sampling-live-shard" title="Live from /api/stats — shard_size">30 problems</strong> across <strong id="sampling-live-cats" title="Live from /api/stats — count of category keys">6 language categories</strong> using fixed per-language quotas
@@ -4792,6 +4803,25 @@ function initScoringPage() {
           cp._hideT = setTimeout(() => { cp.classList.remove('show'); cp._hideT = null; }, 6000);
         }
       }
+    });
+  }
+  // Glossary card → deeper home section bridge. Click `★ Sampling section ↗` (or similar) on a glossary card → smooth-scroll #s-* into view → 1.2s `.s-flash` glow on the destination section → replaceState canonical hash. Mirrors _mcGlBridgeWired but targets sections (not metric cards).
+  if (!window._glSectionLinkWired) {
+    window._glSectionLinkWired = true;
+    document.addEventListener('click', (ev) => {
+      const a = ev.target.closest('a.glossary-section-link a, a[data-section-target]');
+      if (!a) return;
+      const id = a.getAttribute('data-section-target');
+      if (!id) return;
+      ev.preventDefault();
+      const sec = document.getElementById(id);
+      if (!sec) return;
+      sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      sec.classList.remove('s-flash');
+      void sec.offsetWidth;
+      sec.classList.add('s-flash');
+      setTimeout(() => sec.classList.remove('s-flash'), 1300);
+      try { history.replaceState(null, '', '#' + id); } catch (_) {}
     });
   }
   // Copy-chip click → write canonical #gl-<id> URL to clipboard, swap label to "Copied!" for 1.4s.
