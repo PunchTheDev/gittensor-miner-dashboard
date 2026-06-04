@@ -250,6 +250,9 @@
     .rank-3 { color: #cd7f32; }
     .rank-n { color: var(--accent); }
     .rank-oracle { color: var(--muted); font-style: italic; font-size: 12px; }
+    .rank-gap { display: block; font-family: var(--mono); font-size: 10px; font-weight: 500; margin-top: 3px; letter-spacing: 0.02em; }
+    .rank-gap.lead { color: var(--green); }
+    .rank-gap.trail { color: var(--muted); }
 
     .score { font-family: var(--mono); font-weight: 600; }
 
@@ -3229,11 +3232,56 @@ function difficultyBadge(p) {
   return `<span class="diff-badge diff-${tier}" title="${title[tier] || tier}">${tier} ${weights[tier] || ''}</span>`;
 }
 
-function rankCell(row) {
-  if (row.rank === null) return `<td><span class="rank-oracle">oracle</span></td>`;
+function rankCell(row, rankScores) {
+  if (row.rank === null) return `<td><span class="rank-oracle" title="Oracle — the reference baseline. weighted_benchmark_score = 1.0 by definition. Beat it to outperform the oracle.">oracle</span></td>`;
   const cls = row.rank === 1 ? 'rank-1' : row.rank === 2 ? 'rank-2' : row.rank === 3 ? 'rank-3' : 'rank-n';
   const medal = row.rank === 1 ? '🥇' : row.rank === 2 ? '🥈' : row.rank === 3 ? '🥉' : '';
-  return `<td><span class="rank ${cls}">${medal || '#' + row.rank}</span></td>`;
+  // Medal explainer: tooltip names the place + gap to the neighbouring rank (lead vs #N+1, trail vs #N-1)
+  let medalTip = '';
+  let gapLine = '';
+  if (medal && rankScores) {
+    const myScore = rankScores[row.rank];
+    const placeName = row.rank === 1 ? 'First place' : row.rank === 2 ? 'Second place' : 'Third place';
+    if (row.rank === 1) {
+      const next = rankScores[2];
+      if (myScore != null && next != null) {
+        const lead = myScore - next;
+        medalTip = `${placeName} — leading rank 2 by Δ${lead.toFixed(4)} weighted_benchmark_score`;
+        gapLine = `<span class="rank-gap lead" title="Lead over rank 2 — current cushion before the crown changes hands">+${lead.toFixed(4)}</span>`;
+      } else {
+        medalTip = `${placeName} — highest weighted_benchmark_score in the current pool`;
+      }
+    } else if (row.rank === 2) {
+      const above = rankScores[1];
+      const below = rankScores[3];
+      const parts = [];
+      let primary = '';
+      if (myScore != null && above != null) {
+        const trail = above - myScore;
+        parts.push(`trailing rank 1 by Δ${trail.toFixed(4)}`);
+        primary = `−${trail.toFixed(4)}`;
+      }
+      if (myScore != null && below != null) {
+        const lead = myScore - below;
+        parts.push(`leading rank 3 by Δ${lead.toFixed(4)}`);
+      }
+      medalTip = `${placeName} — ${parts.join(' · ') || 'second-highest weighted_benchmark_score'}`;
+      if (primary) gapLine = `<span class="rank-gap trail" title="Behind rank 1 — close this gap to take the crown">${primary}</span>`;
+    } else if (row.rank === 3) {
+      const above = rankScores[2];
+      if (myScore != null && above != null) {
+        const trail = above - myScore;
+        medalTip = `${placeName} — trailing rank 2 by Δ${trail.toFixed(4)} weighted_benchmark_score`;
+        gapLine = `<span class="rank-gap trail" title="Behind rank 2 — close this gap to claim silver">−${trail.toFixed(4)}</span>`;
+      } else {
+        medalTip = `${placeName} — third-highest weighted_benchmark_score in the current pool`;
+      }
+    }
+  }
+  const medalHTML = medal
+    ? `<span class="rank ${cls}"${medalTip ? ` title="${esc(medalTip)}"` : ''}>${medal}</span>${gapLine}`
+    : `<span class="rank ${cls}">#${row.rank}</span>`;
+  return `<td>${medalHTML}</td>`;
 }
 
 // ── Main load ─────────────────────────────────────────────────
@@ -4011,6 +4059,14 @@ function renderLb() {
   lbPage = Math.min(lbPage, totalPages);
   const pageItems = sorted.slice((lbPage - 1) * LB_PAGE_SIZE, lbPage * LB_PAGE_SIZE);
 
+  // Build rank → weighted_benchmark_score map for medal-gap tooltips (rankCell). Uses
+  // realEntries (unfiltered by search) so gaps reflect the true global standings, not
+  // whatever subset the user happens to be searching.
+  const rankScores = {};
+  realEntries.forEach(r => {
+    if (r.rank != null && r.weighted_benchmark_score != null) rankScores[r.rank] = r.weighted_benchmark_score;
+  });
+
   document.querySelectorAll('#page-leaderboard th.sortable').forEach(th => {
     th.classList.remove('sort-asc', 'sort-desc');
     if (th.dataset.lbcol === lbSortCol) th.classList.add(lbSortDir === 'asc' ? 'sort-asc' : 'sort-desc');
@@ -4076,7 +4132,7 @@ function renderLb() {
           ? `<a href="https://github.com/PunchTheDev/gittensor-base-miner/blob/main/agent/example/agent.py" target="_blank" rel="noopener" style="font-size:10px;color:var(--muted);margin-left:6px;text-decoration:none;border:1px solid var(--border);padding:1px 5px;border-radius:3px" title="View example agent — the starting point to beat" onclick="event.stopPropagation()">example ↗</a>`
           : '');
     tr.innerHTML = `
-      ${rankCell(row)}
+      ${rankCell(row, rankScores)}
       <td style="font-weight:${isOracle ? 400 : 500}">
         ${esc(row.agent)}${codeLink}
         ${hasBreakdown ? `<span style="font-size:10px;color:var(--accent);margin-left:6px">▸ breakdown</span>` : ''}
