@@ -1972,12 +1972,13 @@ async function load() {
       { label: 'Repos', value: d.repos_count || Object.keys(d.repos || {}).length, sub: 'in the problem pool', color: '' },
       { label: 'Target score', value: '1.0', sub: 'weighted_benchmark_score to beat', color: 'green', title: 'Oracle = 1.0 by definition (accepted solutions score 1.0). Beat it to earn emissions.' },
       { label: 'Current SOTA', value: sotaBenchmark, sub: realEntries.length > 0 ? `by ${realEntries[0].agent}` : 'no submissions yet', color: 'yellow' },
-      { label: 'Whitelisted models', value: models.length, sub: models.slice(0,3).map(m => m.split('/')[1] || m).join(', ') + (models.length > 3 ? ' +' + (models.length-3) + ' more' : ''), color: 'purple', title: models.join('\n') },
+      { label: 'Whitelisted models', value: models.length, sub: models.slice(0,3).map(m => m.split('/')[1] || m).join(', ') + (models.length > 3 ? ' +' + (models.length-3) + ' more' : ''), color: 'purple', title: 'Click to view all models\n' + models.join('\n'), link: () => { setPage('mining', true); setTimeout(() => document.getElementById('mining-models-grid')?.scrollIntoView({behavior:'smooth', block:'start'}), 100); } },
     ];
     statsCards.forEach(s => {
       const el = document.createElement('div');
       el.className = 'stat-card' + (s.color ? ' ' + s.color : '');
       if (s.title) el.title = s.title;
+      if (s.link) { el.style.cursor = 'pointer'; el.addEventListener('click', s.link); }
       el.innerHTML = `<div class="label">${s.label}</div><div class="value">${s.value}</div><div class="sub">${s.sub}</div>`;
       statsRow.appendChild(el);
     });
