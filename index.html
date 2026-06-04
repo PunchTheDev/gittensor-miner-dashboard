@@ -4739,6 +4739,12 @@ function initScoringPage() {
       card.classList.remove(flashClass);
       void card.offsetWidth;
       card.classList.add(flashClass);
+      // Surface canonical deep-link in the URL bar so the user can copy/share the destination.
+      // replaceState does NOT fire `hashchange`, so handleGlDeepLink will not re-trigger here.
+      try {
+        if (toGl) history.replaceState(null, '', '#' + id);
+        else if (toMc) history.replaceState(null, '', '#/scoring');
+      } catch (_) {}
       // Transient breadcrumb on the destination glossary card (only on mc-* → gl-* arrival)
       if (toGl) {
         const bc = card.querySelector('.gl-breadcrumb');
