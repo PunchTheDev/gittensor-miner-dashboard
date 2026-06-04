@@ -3273,13 +3273,9 @@ function openDrawer(p, pushHash = true) {
   const body = document.getElementById('drawer-body');
   body.innerHTML = '';
 
-  const actionRow = document.createElement('div');
-  actionRow.className = 'action-row';
-  actionRow.innerHTML = `
-    <a class="btn" href="${esc(p.pr_url)}" target="_blank">View PR on GitHub ↗</a>
-    ${p.issue_url ? `<a class="btn" href="${esc(p.issue_url)}" target="_blank">View Issue ↗</a>` : ''}
-  `;
-  body.appendChild(actionRow);
+  // (Removed redundant action-row: drawer-meta already shows linked "Issue #N" / "PR #N"
+  //  with the actual numbers — duplicate "View PR on GitHub ↗" / "View Issue ↗" buttons
+  //  consolidated. Real next-action for miners lives in the "Run this problem locally" block.)
 
   const hasBaseline = p.baseline_score !== null && p.baseline_score !== undefined;
   const hasDas = p.das_score !== null && p.das_score !== undefined;
