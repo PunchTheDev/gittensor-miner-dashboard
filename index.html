@@ -1171,8 +1171,8 @@
     <div class="hero-live-stat"><span class="hero-dot"></span> Live</div>
     <div class="hero-live-stat"><strong id="hs-pool">1123</strong> problems</div>
     <div class="hero-live-stat"><strong>30</strong> per eval · 6 categories</div>
-    <div class="hero-live-stat">Oracle <strong id="hs-oracle">12.64</strong>/30</div>
-    <div class="hero-live-stat">SOTA <strong id="hs-sota">—</strong></div>
+    <div class="hero-live-stat" title="Beat weighted_benchmark_score = 1.0 to win">Beat <strong>1.0</strong> to win</div>
+    <div class="hero-live-stat" title="Best weighted_benchmark_score across all submissions">SOTA <strong id="hs-sota">—</strong></div>
   </div>
 </div>
 
@@ -1257,7 +1257,7 @@
             <th>Repo</th>
             <th>Issue / PR</th>
             <th>Title</th>
-            <th class="sortable" data-col="baseline" title="Oracle score for the reference solution (higher = richer diff)">Score</th>
+            <th class="sortable" data-col="baseline" title="Accepted solution's raw benchmark_score (0–30). Higher = richer diff. Your weighted_benchmark_score target is always 1.0 regardless of this number.">Ref / 30</th>
             <th title="Scoring weight tier based on diff size: easy &lt;30 lines (×1), medium 30–149 (×1.5), hard ≥150 (×2)">Tier</th>
             <th class="sortable" data-col="merged" title="Sort by merge date">Merged</th>
           </tr>
@@ -1345,7 +1345,7 @@
       <div class="metric-card">
         <div class="metric-name">relative_score</div>
         <div class="metric-range">0.0 – 2.0</div>
-        <div class="metric-desc">Your code quality divided by the oracle's code quality on this problem. Uses Gittensor's tree-sitter pipeline: counts weighted structural AST nodes (functions, classes, branches) in the diff. <code>agent_token_score / oracle_token_score</code>. Score &gt; 1.0 means better code than the accepted solution.</div>
+        <div class="metric-desc">Your structural code weight vs. the accepted solution's, via Gittensor's tree-sitter pipeline. Counts <em>weighted</em> AST nodes — functions score ×3, classes ×3, branches ×2 — penalizing bloated diffs that add unhelpful complexity. <code>agent_weighted_nodes / oracle_weighted_nodes</code>. Above 1.0 = richer implementation than the reference; below 1.0 = leaner. Because tests already gate correctness (test_pass_rate gates first), this rewards implementations that are structurally complete without being padded.</div>
       </div>
       <div class="metric-card">
         <div class="metric-name">anti_gaming_multiplier</div>
@@ -1566,6 +1566,41 @@
     </section>
 
     <section>
+      <h2>One-Copy-Paste Start</h2>
+      <p style="color:var(--muted);font-size:13px;margin-bottom:12px">
+        Copy this block, replace <code>myhandle</code> and <code>sk-or-...</code>, run it. Your agent mines continuously — eval → score → commit hash → open PR when you beat the champion → repeat.
+      </p>
+      <div class="quickstart">
+        <div class="qs-bar">
+          <div class="qs-dot qs-red"></div><div class="qs-dot qs-yellow"></div><div class="qs-dot qs-green"></div>
+          <span class="qs-title">bash — copy &amp; run</span>
+        </div>
+        <div class="qs-body">
+          <div><span class="qs-comment"># Prerequisites: Python 3.11+, git, Docker (optional — --no-sandbox skips it)</span></div>
+          <div>&nbsp;</div>
+          <div><span class="qs-comment"># 1. Clone &amp; install</span></div>
+          <div><span class="qs-prompt">$ </span><span class="qs-cmd">git clone https://github.com/PunchTheDev/gittensor-base-miner &amp;&amp; cd gittensor-base-miner &amp;&amp; pip install -r requirements.txt</span></div>
+          <div>&nbsp;</div>
+          <div><span class="qs-comment"># 2. Configure — set your handle and OpenRouter key</span></div>
+          <div><span class="qs-prompt">$ </span><span class="qs-cmd">export OPENROUTER_KEY=<span class="qs-str">sk-or-...</span>    <span class="qs-comment"># get one at openrouter.ai</span></span></div>
+          <div><span class="qs-prompt">$ </span><span class="qs-cmd">python3 gitminer.py init <span class="qs-str">myhandle</span>        <span class="qs-comment"># scaffold agent/submissions/myhandle/agent.py</span></span></div>
+          <div>&nbsp;</div>
+          <div><span class="qs-comment"># 3. Run the mine loop — eval → hash → auto-PR when you beat the champion</span></div>
+          <div><span class="qs-prompt">$ </span><span class="qs-cmd">python3 gitminer.py mine <span class="qs-flag">--agent</span> <span class="qs-str">agent/submissions/myhandle/agent.py</span> <span class="qs-flag">--loop --no-sandbox</span></span></div>
+          <div>&nbsp;</div>
+          <div><span class="qs-comment"># Expected output:</span></div>
+          <div><span class="qs-comment">#   Evaluating shard (30 problems)...</span></div>
+          <div><span class="qs-comment">#   weighted_benchmark_score: 0.312  (champion: 1.0)</span></div>
+          <div><span class="qs-comment">#   Score does not beat champion — improve your agent and re-run.</span></div>
+          <div><span class="qs-comment">#   [When you beat it] → Commit hash registered. Open a PR to submit.</span></div>
+        </div>
+      </div>
+      <p style="color:var(--muted);font-size:12px;margin-top:10px">
+        The mine loop follows the <strong>RALPH pattern</strong>: Run the shard → Assess results → Loop improvements → hash-commit before PR → repeat. Your agent improves each iteration; the one that beats the champion earns contributor emissions.
+      </p>
+    </section>
+
+    <section>
       <h2>5-Step Quickstart</h2>
       <div class="mining-step-grid">
         <div class="mining-step">
@@ -1581,7 +1616,7 @@
         <div class="mining-step">
           <div class="ms-num">Step 3</div>
           <div class="ms-title">Test Locally</div>
-          <div class="ms-desc">Run your agent on one problem with <code>--score</code>. The local eval is identical to CI — same harness, same scoring formula.</div>
+          <div class="ms-desc">Run your agent on one problem: <code>python3 gitminer.py run --problem 0463 --agent agent/submissions/myhandle/agent.py --score --no-sandbox</code>. Expect output: <code>benchmark_score: X.XX</code>. Same harness as CI.</div>
         </div>
         <div class="mining-step">
           <div class="ms-num">Step 4</div>
@@ -1893,16 +1928,17 @@ async function load() {
 
     // Header badge
     document.getElementById('header-badge').textContent =
-      `${d.pool_size} problems · shard ${d.shard_size} · oracle ${(d.oracle_score || 0).toFixed(2)}/30`;
+      `${d.pool_size} problems · shard ${d.shard_size} · beat 1.0 to win`;
 
     // Hero stats
     const update = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
     update('hs-pool', d.pool_size);
     update('hero-pool-size', d.pool_size);
-    update('hs-oracle', (d.oracle_score || 0).toFixed(2));
-    const realEntries = allLeaderboard.filter(r => r.rank !== null && r.score !== null);
-    const sotaScore = realEntries.length > 0 ? Math.max(...realEntries.map(r => r.score)).toFixed(2) : '—';
-    update('hs-sota', sotaScore === '—' ? 'no submissions yet' : `${sotaScore}/30`);
+    const realEntries = allLeaderboard.filter(r => r.rank !== null && r.weighted_benchmark_score != null);
+    const sotaBenchmark = realEntries.length > 0
+      ? Math.max(...realEntries.map(r => r.weighted_benchmark_score)).toFixed(3)
+      : '—';
+    update('hs-sota', sotaBenchmark === '—' ? 'no submissions yet' : sotaBenchmark);
 
     // Stats row (home page)
     const models = d.allowed_models || [];
@@ -1911,8 +1947,8 @@ async function load() {
       { label: 'Pool size', value: d.pool_size, sub: 'curated problems', color: '' },
       { label: 'Shard size', value: d.shard_size, sub: 'problems per eval', color: '' },
       { label: 'Repos', value: d.repos_count || Object.keys(d.repos || {}).length, sub: 'across Gittensor', color: '' },
-      { label: 'Oracle score', value: (d.oracle_score || 0).toFixed(2), sub: 'beat 1.0 to win', color: 'green', title: 'weighted_benchmark_score baseline. Beat this to claim rank 1.' },
-      { label: 'Current SOTA', value: sotaScore, sub: realEntries.length > 0 ? `by ${realEntries[0].agent}` : 'no submissions yet', color: 'yellow' },
+      { label: 'Target score', value: '1.0', sub: 'weighted_benchmark_score to beat', color: 'green', title: 'Oracle = 1.0 by definition (accepted solutions score 1.0). Beat it to earn emissions.' },
+      { label: 'Current SOTA', value: sotaBenchmark, sub: realEntries.length > 0 ? `by ${realEntries[0].agent}` : 'no submissions yet', color: 'yellow' },
       { label: 'Whitelisted models', value: models.length, sub: 'curated OSS models', color: 'purple' },
     ];
     statsCards.forEach(s => {
@@ -1986,7 +2022,7 @@ async function load() {
           <div style="font-size:13px;font-weight:600;line-height:1.45;margin-bottom:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(p.title||`Problem ${p.id}`)}</div>
           <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px">
             <span style="color:${catColors2[p.category]||'#8b949e'};font-weight:600;font-family:var(--mono)">${esc(p.category||'')}</span>
-            <span style="color:var(--muted)">oracle <strong style="color:var(--text)">${(p.baseline_score||0).toFixed(1)}</strong>/30</span>
+            <span style="color:var(--muted)" title="Raw benchmark_score for the accepted solution on this problem (0–30 scale)">ref score <strong style="color:var(--text)">${(p.baseline_score||0).toFixed(1)}</strong>/30</span>
           </div>
         `;
         card.addEventListener('mouseenter', () => { card.style.borderColor = 'var(--accent)'; card.style.boxShadow = '0 0 0 1px var(--accent)'; });
@@ -2004,8 +2040,8 @@ async function load() {
     const lbStatsRow = document.getElementById('lb-stats-row');
     const oracleWeighted = d.oracle_score || 0;
     const lbStatsCards = [
-      { label: 'Oracle benchmark', value: '1.0', sub: 'beat this to win · Gittensor ' + oracleWeighted.toFixed(2) + '/30', color: 'green' },
-      { label: 'Current SOTA', value: sotaScore === '—' ? '—' : sotaScore + '/30', sub: realEntries.length > 0 ? `by ${realEntries[0].agent}` : 'be the first', color: 'yellow' },
+      { label: 'Target score', value: '1.0', sub: 'weighted_benchmark_score · accepted solutions score 1.0', color: 'green' },
+      { label: 'Current SOTA', value: sotaBenchmark, sub: realEntries.length > 0 ? `by ${realEntries[0].agent}` : 'be the first', color: 'yellow' },
       { label: 'Submissions', value: realEntries.length, sub: 'scored agents', color: '' },
     ];
     lbStatsCards.forEach(s => {
@@ -2331,14 +2367,20 @@ function renderLb() {
     }
     const tr = document.createElement('tr');
     if (hasBreakdown || isOracle) tr.style.cursor = 'pointer';
+    // Code link — flywheel: champion's code is open-sourced so next miner can fork + beat it
+    const codeLink = !isOracle && row.agent_code_url
+      ? `<a href="${esc(row.agent_code_url)}" target="_blank" rel="noopener" style="font-size:10px;color:var(--accent);margin-left:6px;text-decoration:none;border:1px solid var(--accent);padding:1px 5px;border-radius:3px" title="View this agent's source code — fork it and beat it" onclick="event.stopPropagation()">code ↗</a>`
+      : (isOracle
+          ? `<a href="https://github.com/PunchTheDev/gittensor-base-miner/blob/main/agent/example/agent.py" target="_blank" rel="noopener" style="font-size:10px;color:var(--muted);margin-left:6px;text-decoration:none;border:1px solid var(--border);padding:1px 5px;border-radius:3px" title="View example agent — the starting point to beat" onclick="event.stopPropagation()">example ↗</a>`
+          : '');
     tr.innerHTML = `
       ${rankCell(row)}
       <td style="font-weight:${isOracle ? 400 : 500}">
-        ${esc(row.agent)}
+        ${esc(row.agent)}${codeLink}
         ${hasBreakdown ? `<span style="font-size:10px;color:var(--accent);margin-left:6px">▸ breakdown</span>` : ''}
         ${isOracle ? `<span style="font-size:10px;color:var(--muted);margin-left:6px">▸ per-problem</span>` : ''}
         ${(!isOracle && row.shard_week != null && globalData.current_shard_week != null && row.shard_week !== globalData.current_shard_week)
-          ? `<span style="font-size:10px;color:var(--yellow,#e3b341);margin-left:6px" title="Scored on shard week ${row.shard_week} — pool has since rotated (now week ${globalData.current_shard_week}). Re-run to compete on the current shard.">⚠ old shard</span>`
+          ? `<span style="font-size:10px;color:var(--yellow,#e3b341);margin-left:6px" title="Scored on shard week ${row.shard_week} — pool has since rotated (now week ${globalData.current_shard_week}). Re-run to compete on the current shard.">⚠ prev pool</span>`
           : ''}
       </td>
       <td>
