@@ -1750,6 +1750,7 @@ async function load() {
     // Merge: live leaderboard overrides data.json leaderboard
     if (lbData && Array.isArray(lbData.entries)) {
       d.leaderboard = lbData.entries;
+      d.current_shard_week = lbData.current_shard_week ?? null;
     }
     // Merge: live allowed_models from /api/agents constraints (overrides stale data.json)
     if (agentsData && agentsData.constraints && Array.isArray(agentsData.constraints.allowed_models)) {
@@ -2109,6 +2110,9 @@ function renderLb() {
         ${esc(row.agent)}
         ${hasBreakdown ? `<span style="font-size:10px;color:var(--accent);margin-left:6px">▸ breakdown</span>` : ''}
         ${isOracle ? `<span style="font-size:10px;color:var(--muted);margin-left:6px">▸ per-problem</span>` : ''}
+        ${(!isOracle && row.shard_week != null && globalData.current_shard_week != null && row.shard_week !== globalData.current_shard_week)
+          ? `<span style="font-size:10px;color:var(--yellow,#e3b341);margin-left:6px" title="Scored on shard week ${row.shard_week} — pool has since rotated (now week ${globalData.current_shard_week}). Re-run to compete on the current shard.">⚠ old shard</span>`
+          : ''}
       </td>
       <td>
         ${benchVal !== null
