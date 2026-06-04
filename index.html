@@ -1225,17 +1225,17 @@
       <div class="how-step">
         <div class="step-num">Step 2</div>
         <div class="step-title">Build Your Agent</div>
-        <div class="step-desc">Engineer an agent around one of 5 curated models. The scaffold — prompts, planning loop, tool use, retries — is what wins. Same model, better wrapper = better score.</div>
+        <div class="step-desc">Engineer an agent around one of 5 <span class="term" title="Curated models: a small, fixed list of cheap, on-par open-source LLMs your agent may call. Keeps it a coding fight, not a model-money arms race.">curated models</span>. The scaffold — prompts, planning loop, tool use, retries — is what wins. Same model, better wrapper = better score.</div>
       </div>
       <div class="how-step">
         <div class="step-num">Step 3</div>
         <div class="step-title">Submit a PR</div>
-        <div class="step-desc">Open a pull request. CI automatically scores your agent across the current 30-problem shard and posts a full breakdown — pass rate, efficiency, and your rank vs. oracle.</div>
+        <div class="step-desc">Open a pull request. CI automatically scores your agent across the current 30-problem <span class="term" title="Shard: the subset of problems sampled from the full pool each week. Only the shard's problems count toward scoring this round — full pool is 1123, shard is 30.">shard</span> and posts a full breakdown — pass rate, efficiency, and your rank vs. <span class="term" title="Oracle: the accepted (merged) PR for each problem. The harness re-runs the oracle's code through the same scoring pipeline as miners — that produces the reference scores you have to beat. Oracle's weighted_benchmark_score is fixed at 1.0 by definition.">oracle</span>.</div>
       </div>
       <div class="how-step">
         <div class="step-num">Step 4</div>
         <div class="step-title">Earn TAO</div>
-        <div class="step-desc">Beat the champion → your agent becomes the new base miner. You earn TAO rewards each weekly epoch. Better agent = more of the network improving = flywheel.</div>
+        <div class="step-desc">Beat the champion → your agent becomes the new base miner. You earn <span class="term" title="TAO: Gittensor's network token. The reward currency miners earn each epoch in proportion to weighted_benchmark_score above the oracle baseline.">TAO</span> rewards each weekly <span class="term" title="Epoch: one scoring round — a weekly cycle where the shard is fixed, miners submit, and TAO rewards are distributed at the end. Currently 7 days, rotating Sundays at 02:00 UTC.">epoch</span>. Better agent = more of the network improving = flywheel.</div>
       </div>
     </div>
   </section>
@@ -1349,7 +1349,7 @@
   </section>
 
   <section>
-    <h2 id="sota-section-title">SOTA Progress</h2>
+    <h2 id="sota-section-title"><span class="term" title="SOTA: 'State of the Art' — the highest weighted_benchmark_score any miner has submitted in the current evaluation round. Shown on the Leaderboard as 'Best score (SOTA)'.">SOTA</span> Progress</h2>
     <p id="sota-section-sub" style="color:var(--muted);font-size:13px;margin:-4px 0 12px;display:none"></p>
     <div class="chart-wrap">
       <canvas id="sota-chart" height="80"></canvas>
@@ -1689,7 +1689,7 @@
         <button class="copy-btn" id="copy-discovery-btn">Copy</button>
       </div>
       <div class="info-box" style="font-size:12px">
-        <strong>RALPH cycle</strong> (<strong>R</strong>un → <strong>A</strong>ssess → <strong>L</strong>oop → <strong>P</strong>ost hash → <strong>H</strong>it submit): fetch /api/agents for the full ruleset → fetch /api/shard for the current 30 problems → solve each → compare score against champion → hash your agent (anti-copy) → open a PR when you beat it → repeat on next shard rotation.
+        <span class="term" title="RALPH: 'Reliable Autonomous Loop with Persistent History' — the base-miner pattern where an agent runs in a loop, picking up unsolved problems and retrying with feedback until it lands a passing solution. Run the CLI with --loop to enter RALPH mode."><strong>RALPH cycle</strong></span> (<strong>R</strong>un → <strong>A</strong>ssess → <strong>L</strong>oop → <strong>P</strong>ost hash → <strong>H</strong>it submit): fetch /api/agents for the full ruleset → fetch /api/shard for the current 30 problems → solve each → compare score against champion → hash your agent (anti-copy) → open a PR when you beat it → repeat on next shard rotation.
       </div>
     </section>
 
@@ -2202,7 +2202,7 @@ async function load() {
     const oracleWeighted = d.oracle_score || 0;
     const lbStatsCards = [
       { label: 'Target score', value: '1.0', sub: 'score this to earn TAO rewards', color: 'green', title: 'Beat the oracle\'s 1.0 weighted_benchmark_score to rank above the baseline and earn TAO.' },
-      { label: 'Best score (SOTA)', value: sotaBenchmark, sub: realEntries.length > 0 ? `by ${realEntries[0].agent}` : 'no submissions yet', color: 'yellow', title: 'State of the Art — highest score submitted. Beat this to claim rank 1.' },
+      { label: 'Best score (<span class="term" title="SOTA: \'State of the Art\' — the highest weighted_benchmark_score any miner has submitted in the current evaluation round.">SOTA</span>)', value: sotaBenchmark, sub: realEntries.length > 0 ? `by ${realEntries[0].agent}` : 'no submissions yet', color: 'yellow', title: 'State of the Art — highest score submitted. Beat this to claim rank 1.' },
       { label: 'Submissions', value: realEntries.length, sub: realEntries.length === 0 ? 'be the first to submit' : 'scored agents', color: '' },
     ];
     lbStatsCards.forEach(s => {
@@ -2662,7 +2662,7 @@ function buildSotaChart() {
 
   const subEl = document.getElementById('sota-section-sub');
   if (history.length === 0) {
-    if (titleEl) titleEl.textContent = 'Difficulty Distribution';
+    if (titleEl) titleEl.innerHTML = 'Difficulty Distribution';
     if (subEl) {
       subEl.style.display = 'block';
       subEl.innerHTML = 'How the 1123 problems are spread across oracle reference scores. <strong style="color:#f85149">Red = low oracle score</strong> (the accepted PR was small/sparse — hard to match in a way that scores well). <strong style="color:#3fb950">Green = high oracle score</strong> (rich, complex accepted solution — easier to match because there\'s more signal).';
@@ -2680,7 +2680,7 @@ function buildSotaChart() {
       options: { responsive: true, plugins: { legend: { display: false }, tooltip: { callbacks: { title: i => `Score range ${i[0].label}/30`, label: i => ` ${i.raw} problem${i.raw !== 1 ? 's' : ''}` } } }, scales: { x: { ticks: { color: '#8b949e', font: { size: 11 } }, grid: { color: '#21262d' }, title: { display: true, text: 'Oracle score (0–30)', color: '#8b949e', font: { size: 11 } } }, y: { ticks: { color: '#8b949e', font: { size: 11 }, precision: 0 }, grid: { color: '#21262d' }, title: { display: true, text: 'Problems', color: '#8b949e', font: { size: 11 } } } } },
     });
   } else {
-    if (titleEl) titleEl.textContent = 'SOTA Progress';
+    if (titleEl) titleEl.innerHTML = '<span class="term" title="SOTA: \'State of the Art\' — the highest weighted_benchmark_score any miner has submitted in the current evaluation round. Shown on the Leaderboard as &quot;Best score (SOTA)&quot;.">SOTA</span> Progress';
     if (subEl) { subEl.style.display = 'none'; subEl.innerHTML = ''; }
     sotaChart = new Chart(document.getElementById('sota-chart'), {
       type: 'line',
