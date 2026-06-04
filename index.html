@@ -1333,6 +1333,10 @@
     #crown-threshold-table .crown-margin-bar-fill { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, var(--accent) 0%, rgba(88,166,255,0.55) 100%); border-radius: 2px; transition: width 0.4s ease; }
     #crown-threshold-table tr#crown-live-row .crown-margin-bar-fill { background: linear-gradient(90deg, var(--green) 0%, rgba(46,160,67,0.55) 100%); }
     #crown-threshold-table tr#crown-live-row .crown-margin-bar-track { background: rgba(46,160,67,0.14); }
+    /* th scale annotation under "Required margin to claim crown" — names the 0→0.02 bar scale inline */
+    #crown-threshold-table th .th-scale { display: block; margin-top: 3px; font-family: var(--mono); font-size: 10px; font-weight: 400; letter-spacing: 0.04em; color: var(--muted); text-transform: none; }
+    #crown-threshold-table th .th-scale .th-scale-track { display: inline-block; vertical-align: middle; width: 36px; height: 3px; margin: 0 6px; background: rgba(110,118,129,0.25); border-radius: 2px; position: relative; overflow: hidden; }
+    #crown-threshold-table th .th-scale .th-scale-track::after { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 100%; background: linear-gradient(90deg, var(--accent) 0%, rgba(88,166,255,0.45) 100%); border-radius: 2px; }
     .diff-chart-caption { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin: 20px 0 6px; padding: 0 2px; }
     .diff-chart-caption .dcc-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 600; }
     .diff-chart-caption .dcc-lens { font-size: 11px; color: var(--accent); text-align: right; }
@@ -2841,7 +2845,7 @@
     </div>
     <div id="crown-table-wrap" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin:6px 0 16px;scroll-margin-top:72px">
       <table class="difficulty-table" id="crown-threshold-table">
-        <thead><tr><th>Current best score</th><th>Crown threshold</th><th>Required margin to claim crown</th></tr></thead>
+        <thead><tr><th>Current best score</th><th>Crown threshold</th><th>Required margin to claim crown<span class="th-scale" title="Bars below are scaled 0 → 0.02 — the maximum anti-copy margin (when SOTA=0). Margin shrinks toward 0 as SOTA approaches the 2.0 cap.">bar scale: 0<span class="th-scale-track" aria-hidden="true"></span>0.02</span></th></tr></thead>
         <tbody>
           <tr id="crown-live-row" data-live="1" data-sota="0" data-margin="0.02"><td style="font-family:var(--mono);color:var(--text)"><span class="api-method-badge" style="background:rgba(46,160,67,0.18);color:var(--green);border-color:rgba(46,160,67,0.35);margin-right:6px">LIVE</span><span id="crown-live-sota">0.0</span> <span class="muted" id="crown-live-sub" style="font-size:11px">(no submissions)</span></td><td style="font-family:var(--mono);color:var(--accent)" id="crown-live-thresh">0.0200</td><td class="muted"><span id="crown-live-margin">+0.02 above SOTA</span></td></tr>
           <tr data-ref="1" data-sota="0" data-margin="0.02" data-phase="early"><td style="font-family:var(--mono)">0.0 (baseline)<a href="#anticopy-formula" class="crown-phase-chip" data-anchor="anticopy-formula" title="Early phase — fresh pool, no SOTA yet. Full +0.02 margin available; first valid score above 0.02 claims the crown. Click → jump to crown_threshold formula above.">Early</a></td><td style="font-family:var(--mono)">0.0200</td><td class="muted">+0.02 above SOTA</td></tr>
