@@ -219,6 +219,7 @@
       border: 1px solid var(--border);
       border-radius: 8px;
       overflow: hidden;
+      overflow-x: auto;
     }
 
     table { width: 100%; border-collapse: collapse; font-size: 13px; }
@@ -792,9 +793,15 @@
     .formula-block .formula-op { color: var(--yellow); }
     .metric-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      grid-template-columns: repeat(3, 1fr);
       gap: 12px;
       margin: 16px 0;
+    }
+    @media (max-width: 900px) {
+      .metric-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 600px) {
+      .metric-grid { grid-template-columns: 1fr; }
     }
     .metric-card {
       background: var(--surface);
@@ -1190,6 +1197,7 @@
         <tbody id="problems-body"></tbody>
       </table>
     </div>
+    <div class="lb-pagination" id="prob-pagination"></div>
   </section>
 
 </div>
@@ -1585,6 +1593,8 @@ let activeRow = null;
 let activeCat = '';
 let probSortCol = null;
 let probSortDir = 'asc';
+let probPage = 1;
+const PROB_PAGE_SIZE = 50;
 
 // Leaderboard page state
 let lbSearchQ = '';
@@ -1823,6 +1833,7 @@ async function load() {
 
     // Wire problem search and sort (debounced — 1123 problems per render)
     document.getElementById('problem-search').addEventListener('input', debounce(() => {
+      probPage = 1;
       document.getElementById('problems-body').dataset.init = '';
       renderProblems();
     }, 150));
@@ -1831,6 +1842,7 @@ async function load() {
         const col = th.dataset.col;
         if (probSortCol === col) probSortDir = probSortDir === 'asc' ? 'desc' : 'asc';
         else { probSortCol = col; probSortDir = col === 'baseline' ? 'asc' : 'desc'; }
+        probPage = 1;
         renderProblems();
       });
     });
@@ -1839,6 +1851,7 @@ async function load() {
         document.querySelectorAll('.lang-chip').forEach(c => c.classList.remove('active'));
         chip.classList.add('active');
         activeCat = chip.dataset.cat || '';
+        probPage = 1;
         document.getElementById('problems-body').dataset.init = '';
         renderProblems();
       });
@@ -1915,6 +1928,11 @@ function renderProblems() {
     if (th.dataset.col === probSortCol) th.classList.add(probSortDir === 'asc' ? 'sort-asc' : 'sort-desc');
   });
 
+  const totalPages = Math.max(1, Math.ceil(visible.length / PROB_PAGE_SIZE));
+  probPage = Math.min(probPage, totalPages);
+  const pageItems = visible.slice((probPage - 1) * PROB_PAGE_SIZE, probPage * PROB_PAGE_SIZE);
+  const startIdx = (probPage - 1) * PROB_PAGE_SIZE;
+
   document.getElementById('pool-count').textContent =
     visible.length === allProblems.length
       ? `${allProblems.length} problems`
@@ -1922,17 +1940,18 @@ function renderProblems() {
 
   if (visible.length === 0) {
     pb.innerHTML = `<tr><td colspan="7" style="padding:24px;text-align:center;color:var(--muted)">No problems match the current filter.</td></tr>`;
+    document.getElementById('prob-pagination').innerHTML = '';
     return;
   }
 
-  visible.forEach((p, i) => {
+  pageItems.forEach((p, i) => {
     const mergedDate = p.merged_at ? p.merged_at.slice(0, 10) : '—';
     const baselineScore = p.baseline_score != null ? p.baseline_score.toFixed(1) : '—';
     const cat = probCat(p);
     const tr = document.createElement('tr');
     tr.title = 'Click to view problem details';
     tr.innerHTML = `
-      <td class="muted" style="font-family:var(--mono);font-size:11px">${i + 1}</td>
+      <td class="muted" style="font-family:var(--mono);font-size:11px">${startIdx + i + 1}</td>
       <td><span class="repo-tag">${esc(p.repo)}</span></td>
       <td style="white-space:nowrap;font-size:12px">
         ${p.issue_url ? `<a class="link" href="${esc(p.issue_url)}" target="_blank">#${p.issue}</a>` : '—'}
@@ -1953,6 +1972,28 @@ function renderProblems() {
     });
     pb.appendChild(tr);
   });
+
+  // Pagination controls
+  const pagEl = document.getElementById('prob-pagination');
+  if (totalPages <= 1) {
+    pagEl.innerHTML = '';
+  } else {
+    pagEl.innerHTML = '';
+    const prev = document.createElement('button');
+    prev.textContent = '← Prev';
+    prev.disabled = probPage <= 1;
+    prev.addEventListener('click', () => { probPage--; renderProblems(); window.scrollTo(0,0); });
+    const info = document.createElement('span');
+    info.className = 'page-info';
+    info.textContent = `Page ${probPage} of ${totalPages}`;
+    const next = document.createElement('button');
+    next.textContent = 'Next →';
+    next.disabled = probPage >= totalPages;
+    next.addEventListener('click', () => { probPage++; renderProblems(); window.scrollTo(0,0); });
+    pagEl.appendChild(prev);
+    pagEl.appendChild(info);
+    pagEl.appendChild(next);
+  }
 }
 
 // ── Leaderboard page ──────────────────────────────────────────
