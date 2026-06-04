@@ -931,6 +931,26 @@
     }
     .formula-block .formula-key { color: var(--accent); }
     .formula-block .formula-op { color: var(--yellow); }
+    /* Stacked per-term formula rendering — each row is one factor */
+    .formula-stack { display: flex; flex-direction: column; gap: 4px; }
+    .formula-stack .fs-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px; }
+    .formula-stack .fs-head .formula-key { font-size: 14px; font-weight: 700; }
+    .formula-stack .fs-head .fs-eq { color: var(--yellow); }
+    .formula-stack .fs-row {
+      display: grid;
+      grid-template-columns: 20px auto 1fr;
+      align-items: baseline;
+      gap: 10px;
+      padding: 4px 0 4px 18px;
+      border-left: 2px solid var(--border);
+      margin-left: 8px;
+      transition: border-color 0.15s;
+    }
+    .formula-stack .fs-row:hover { border-left-color: var(--accent); }
+    .formula-stack .fs-op { color: var(--yellow); font-weight: 700; text-align: center; }
+    .formula-stack .fs-var { color: var(--accent); white-space: nowrap; }
+    .formula-stack .fs-note { color: var(--muted); font-family: var(--font); font-size: 11px; line-height: 1.45; }
+    .formula-stack .fs-divider { height: 1px; background: var(--border); margin: 10px 0 6px; }
     .metric-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -1602,8 +1622,18 @@
     </div>
 
     <div class="formula-block">
-      <span class="formula-key">benchmark_score</span> <span class="formula-op">=</span> test_pass_rate × relative_score × anti_gaming_multiplier × test_quality_factor × efficiency_factor<br>
-      <span class="formula-key">weighted_benchmark_score</span> <span class="formula-op">=</span> Σ(benchmark_score<sub>i</sub> × weight<sub>i</sub>) / Σ(weight<sub>i</sub>)
+      <div class="formula-stack">
+        <div class="fs-head"><span class="formula-key">benchmark_score</span><span class="fs-eq">=</span><span style="color:var(--muted);font-family:var(--font);font-size:11px">product of five per-problem factors</span></div>
+        <div class="fs-row"><span class="fs-op"></span><span class="fs-var"><span class="term" title="Fraction of unit tests passing on your patch. The primary correctness gate — if all tests fail this is 0 and the whole score collapses.">test_pass_rate</span></span><span class="fs-note">correctness gate · 0.0–1.0 · fraction of repo tests passing</span></div>
+        <div class="fs-row"><span class="fs-op">×</span><span class="fs-var"><span class="term" title="Structural Match — your weighted AST node count ÷ oracle's (functions ×3, classes ×3, branches ×2). 1.0 = structurally on par with the accepted PR.">relative_score</span></span><span class="fs-note">Structural Match vs oracle · 0.0–~2.0 · weighted AST node ratio</span></div>
+        <div class="fs-row"><span class="fs-op">×</span><span class="fs-var"><span class="term" title="Anti-Gaming — penalty for deleting test assertions. Kicks in above 3 removals; floors at 0.5 for >8.">anti_gaming_multiplier</span></span><span class="fs-note">Anti-Gaming penalty · 0.5–1.0 · stops you from deleting assertions to win</span></div>
+        <div class="fs-row"><span class="fs-op">×</span><span class="fs-var"><span class="term" title="tqf (Test Quality Factor) — bonus/penalty signal from hidden / edge tests beyond the standard suite. Rewards patches that hold up beyond the visible tests.">test_quality_factor</span></span><span class="fs-note">tqf · ~0.8–1.2 · hidden/edge test bonus</span></div>
+        <div class="fs-row"><span class="fs-op">×</span><span class="fs-var"><span class="term" title="Efficiency — token budget factor. Free up to 10k output tokens; decays 1.0→0.85 as tokens approach the 50k cap.">efficiency_factor</span></span><span class="fs-note">cost efficiency · 0.85–1.0 · output-token budget decay</span></div>
+        <div class="fs-divider"></div>
+        <div class="fs-head"><span class="formula-key">weighted_benchmark_score</span><span class="fs-eq">=</span><span style="color:var(--muted);font-family:var(--font);font-size:11px">pool-level weighted average of benchmark_score</span></div>
+        <div class="fs-row"><span class="fs-op">Σ</span><span class="fs-var">benchmark_score<sub>i</sub> × <span class="term" title="Difficulty weight — Easy ×1, Medium ×1.5, Hard ×2. Hard problems contribute more to your pool average.">weight<sub>i</sub></span></span><span class="fs-note">numerator · sum across all evaluated problems</span></div>
+        <div class="fs-row"><span class="fs-op">÷</span><span class="fs-var">Σ <span class="term" title="Difficulty weight — Easy ×1, Medium ×1.5, Hard ×2. Hard problems contribute more to your pool average.">weight<sub>i</sub></span></span><span class="fs-note">denominator · normalizes by total weight so the result is on the same 1.0 scale</span></div>
+      </div>
     </div>
 
     <div class="info-box" style="margin-bottom:24px">
