@@ -506,6 +506,33 @@
       padding: 8px 0 0;
     }
 
+    /* ── Category breakdown caption ─────────────────────── */
+    .cat-grid-caption {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin-bottom: 10px;
+      padding: 0 2px;
+    }
+    .cat-grid-hint { font-size: 11px; color: var(--accent); text-transform: none; letter-spacing: 0; }
+    #cat-breakdown .stat-card { position: relative; transition: transform 0.12s ease, border-color 0.12s ease; }
+    #cat-breakdown .stat-card::after {
+      content: "→";
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      font-size: 13px;
+      color: var(--muted);
+      opacity: 0;
+      transition: opacity 0.15s, transform 0.15s;
+    }
+    #cat-breakdown .stat-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+    #cat-breakdown .stat-card:hover::after { opacity: 1; transform: translateX(2px); }
+
     /* ── Repo breakdown ──────────────────────────────────── */
     .repo-breakdown { display: flex; flex-direction: column; gap: 8px; }
 
@@ -1788,15 +1815,19 @@
   <section id="s-sampling">
     <h2>Problem Sampling</h2>
     <div class="info-box" style="margin-bottom:16px">
-      Each eval round samples <strong>30 problems</strong> randomly within language quotas:
-      <strong>10 Python · 7 Rust · 5 TypeScript · 4 Go · 2 JVM (Java/Kotlin) · 2 Ruby</strong>.
-      Shard rotates every Sunday at 02:00 UTC (7-day cycles, fixed epoch).
+      Each eval round samples <strong>30 problems</strong> across <strong>6 language categories</strong> using fixed per-language quotas
+      (full breakdown <a href="#s-sampling" onclick="event.preventDefault();document.getElementById('cat-breakdown').scrollIntoView({behavior:'smooth',block:'center'})" style="color:var(--accent);text-decoration:none">below ↓</a>).
+      Shard rotates every <strong>Sunday at 02:00 UTC</strong> (7-day cycles, fixed epoch).
     </div>
     <div class="info-box" style="margin-bottom:16px">
       <strong>Repos vs. languages.</strong> The sampling unit is the language category, not the repository.
       Repos are the <em>source</em> of problems — each problem is a real merged PR from a Gittensor DAS-registered repo.
       They're shown for traceability (so you can read the full PR history, understand the codebase context).
       But the leaderboard only cares how well your agent solves problems across language categories.
+    </div>
+    <div class="cat-grid-caption">
+      <span>Per-category quotas</span>
+      <span class="cat-grid-hint">Click any category to filter the Problems page →</span>
     </div>
     <div id="cat-breakdown" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px"></div>
   </section>
