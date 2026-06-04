@@ -1322,6 +1322,29 @@
     }
     .calc-row-readonly .crr-chip::before { content: '🔒'; margin-right: 4px; opacity: 0.7; font-size: 9px; }
     .calc-row-readonly .crr-hint { font-size: 11px; color: var(--muted); line-height: 1.5; }
+    /* "Computed from" annotation row — links the read-only tile to the gl-tqf glossary card */
+    .calc-row-readonly .crr-from {
+      margin-top: 8px; padding-top: 6px; border-top: 1px dashed var(--border);
+      font-size: 10px; font-family: var(--mono); color: var(--muted);
+      letter-spacing: 0.04em; text-transform: uppercase;
+      display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    }
+    .calc-row-readonly .crr-from-label { opacity: 0.75; }
+    .calc-row-readonly .crr-from-link {
+      color: var(--muted); text-decoration: none;
+      border-bottom: 1px dashed var(--border);
+      padding: 1px 4px; border-radius: 3px;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+    }
+    .calc-row-readonly .crr-from-link:hover,
+    .calc-row-readonly .crr-from-link:focus {
+      color: var(--accent); border-bottom-color: var(--accent);
+      background: rgba(88,166,255,0.06); outline: none;
+    }
+    .calc-row-readonly .crr-from-link code {
+      font-family: var(--mono); font-size: 10px;
+      color: inherit;
+    }
     .tier-btn { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 4px 10px; font-size: 12px; color: var(--muted); cursor: pointer; transition: all 0.15s; }
     .tier-btn.active { background: rgba(88,166,255,0.12); border-color: var(--accent); color: var(--accent); font-weight: 600; }
     /* Win/miss verdict chip — surfaces the binary "are you winning?" state above the small print */
@@ -2482,6 +2505,10 @@
             <span class="crr-chip" title="Hidden test bonus — locked at 1.0 in the calculator; varies ~0.85–1.2 in real evals">1.000 · locked</span>
           </div>
           <div class="crr-hint">Hidden/edge-test bonus. Measured only in production when your patch is graded against the hidden test suite — there's no slider here because nothing the miner controls feeds it. Locked at 1.0 in the calculator; varies ~0.85–1.2 in real evals.</div>
+          <div class="crr-from">
+            <span class="crr-from-label">Computed from</span>
+            <a class="crr-from-link" href="#/scoring" data-gl-target="gl-tqf" title="Jump to the tqf glossary card — hidden/edge-test bonus, ranges 0.85–1.2, applied only at production-eval time">hidden + edge tests · see <code>tqf</code> glossary ↗</a>
+          </div>
         </div>
         <div class="calc-row">
           <label class="calc-label">difficulty tier</label>
@@ -4477,6 +4504,32 @@ function initScoreCalc() {
 
   update();
   refreshAllPills();
+
+  // "Computed from" tile link → cross-page nav to scoring + scroll-to-gl-tqf + flash.
+  // Delegated, wired once. Mirrors the lb-cta cross-page pattern.
+  if (!window._crrFromWired) {
+    window._crrFromWired = true;
+    document.addEventListener('click', (ev) => {
+      const a = ev.target.closest('a.crr-from-link[data-gl-target]');
+      if (!a) return;
+      ev.preventDefault();
+      const target = a.getAttribute('data-gl-target');
+      const flash = () => {
+        const card = document.getElementById(target);
+        if (!card) return;
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        card.classList.remove('gl-flash');
+        void card.offsetWidth;
+        card.classList.add('gl-flash');
+      };
+      if (typeof setPage === 'function') {
+        setPage('scoring', true);
+        setTimeout(flash, 80);
+      } else {
+        flash();
+      }
+    });
+  }
 }
 
 // ── Scoring page ──────────────────────────────────────────────
