@@ -3225,6 +3225,12 @@ function openSubmissionDrawer(row, allProblems) {
       <td>
         <div class="score-bar-wrap">
           <span class="score" style="font-size:13px">${benchScore}</span>
+          ${item.benchmark_score != null ? (() => {
+            const delta = item.benchmark_score - 1.0;
+            const sign = delta >= 0 ? '+' : '';
+            const dColor = delta >= 0 ? 'var(--green)' : delta > -0.2 ? 'var(--yellow,#e3b341)' : 'var(--red)';
+            return `<span style="font-size:10px;color:${dColor};font-family:var(--mono);margin-left:2px" title="vs oracle (1.0)">${sign}${delta.toFixed(3)}</span>`;
+          })() : ''}
           ${item.benchmark_score != null ? `<div class="score-bar"><div class="score-bar-fill" style="width:${benchPct}%"></div></div>` : ''}
         </div>
       </td>
