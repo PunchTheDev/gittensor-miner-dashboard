@@ -2894,6 +2894,31 @@ function renderProblems() {
     chip.appendChild(document.createTextNode(label));
   });
 
+  // Shard chip — reactive count: how many shard problems match the OTHER active filters
+  const shardLabel = document.getElementById('shard-chip-label');
+  if (shardLabel && shardProblemIds.size > 0) {
+    const shardTotal = shardProblemIds.size;
+    let inShardMatching = 0;
+    for (const pid of shardProblemIds) {
+      const p = allProblems.find(pp => pp.id === pid);
+      if (!p) continue;
+      if (q && !((p.title || '').toLowerCase().includes(q)) && !(p.repo.toLowerCase().includes(q))) continue;
+      if (activeCat && probCat(p) !== activeCat) continue;
+      if (activeDiff && p.difficulty !== activeDiff) continue;
+      inShardMatching++;
+    }
+    const hasOtherFilters = !!(q || activeCat || activeDiff);
+    shardLabel.textContent = hasOtherFilters
+      ? `This shard (${inShardMatching} of ${shardTotal})`
+      : `This shard (${shardTotal})`;
+    const btn = document.getElementById('shard-chip-btn');
+    if (btn) {
+      btn.title = hasOtherFilters
+        ? `${inShardMatching} of ${shardTotal} shard problems match the other active filters — click to drop everything not in the current eval round`
+        : 'Show only the 30 problems in the current weekly eval round';
+    }
+  }
+
   renderActiveFiltersBar(visible.length);
 
   if (visible.length === 0) {
