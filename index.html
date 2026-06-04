@@ -431,6 +431,65 @@
     .diff-chip.active { background: var(--dc, var(--accent)); border-color: var(--dc, var(--accent)); color: #0d1117; font-weight: 600; }
     .diff-chip[data-diff=""].active { background: var(--accent); border-color: var(--accent); }
 
+    /* ── Active filters bar ─────────────────────────────── */
+    .active-filters-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      margin: 8px 0 12px;
+      background: rgba(88, 166, 255, 0.06);
+      border: 1px solid rgba(88, 166, 255, 0.25);
+      border-radius: 6px;
+      font-size: 11px;
+    }
+    .active-filters-bar .afb-label {
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-size: 10px;
+      margin-right: 2px;
+    }
+    .active-filters-bar .afb-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 4px 3px 10px;
+      border-radius: 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 11px;
+    }
+    .active-filters-bar .afb-pill .afb-x {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 13px;
+      line-height: 1;
+      padding: 0;
+    }
+    .active-filters-bar .afb-pill .afb-x:hover { background: var(--border); color: var(--text); }
+    .active-filters-bar .afb-clear {
+      margin-left: auto;
+      background: transparent;
+      border: none;
+      color: var(--accent);
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 6px;
+    }
+    .active-filters-bar .afb-clear:hover { text-decoration: underline; }
+
     /* ── Chart ───────────────────────────────────────────── */
     .chart-wrap {
       background: var(--surface);
@@ -1293,6 +1352,7 @@
         <span>⚡</span><span id="shard-chip-label">This shard (30)</span>
       </button>
     </div>
+    <div id="active-filters-bar" class="active-filters-bar" style="display:none"></div>
     <div class="table-wrap">
       <table id="problems-table">
         <thead>
@@ -2397,6 +2457,65 @@ async function load() {
 
 // ── Problems page ─────────────────────────────────────────────
 
+function clearProbFilter(kind) {
+  if (kind === 'search') {
+    const el = document.getElementById('problem-search');
+    if (el) el.value = '';
+  } else if (kind === 'lang') {
+    activeCat = '';
+    document.querySelectorAll('.lang-chip').forEach(c => c.classList.toggle('active', !c.dataset.cat));
+  } else if (kind === 'diff') {
+    activeDiff = '';
+    document.querySelectorAll('.diff-chip').forEach(c => c.classList.toggle('active', !c.dataset.diff));
+  } else if (kind === 'shard') {
+    activeShardOnly = false;
+    const b = document.getElementById('shard-chip-btn');
+    if (b) {
+      b.style.background = 'var(--surface)';
+      b.style.color = 'var(--muted)';
+      b.style.borderColor = 'var(--border)';
+    }
+  } else if (kind === 'all') {
+    clearProbFilter('search');
+    clearProbFilter('lang');
+    clearProbFilter('diff');
+    clearProbFilter('shard');
+  }
+  probPage = 1;
+  renderProblems();
+}
+
+function renderActiveFiltersBar(resultCount) {
+  const bar = document.getElementById('active-filters-bar');
+  if (!bar) return;
+  const searchEl = document.getElementById('problem-search');
+  const searchQ = searchEl ? searchEl.value.trim() : '';
+  const pills = [];
+  const langNames = { python: 'Python', typescript: 'TypeScript', rust: 'Rust', go: 'Go', jvm: 'JVM (Java/Kotlin)', ruby: 'Ruby' };
+  if (searchQ) pills.push({ kind: 'search', label: `Search: "${searchQ}"` });
+  if (activeCat) pills.push({ kind: 'lang', label: langNames[activeCat] || activeCat });
+  if (activeDiff) pills.push({ kind: 'diff', label: `${activeDiff.charAt(0).toUpperCase()}${activeDiff.slice(1)} tier` });
+  if (activeShardOnly) pills.push({ kind: 'shard', label: '⚡ Current shard only' });
+  if (pills.length === 0) {
+    bar.style.display = 'none';
+    bar.innerHTML = '';
+    return;
+  }
+  bar.style.display = 'flex';
+  const pillsHTML = pills.map(p =>
+    `<span class="afb-pill">${esc(p.label)}<button class="afb-x" data-kind="${p.kind}" title="Remove this filter" aria-label="Remove">×</button></span>`
+  ).join('');
+  bar.innerHTML = `
+    <span class="afb-label">Active filters</span>
+    ${pillsHTML}
+    <span class="muted" style="font-size:11px">→ ${resultCount} of ${allProblems.length} problems</span>
+    <button class="afb-clear" data-kind="all">Clear all</button>
+  `;
+  bar.querySelectorAll('button[data-kind]').forEach(btn => {
+    btn.addEventListener('click', () => clearProbFilter(btn.dataset.kind));
+  });
+}
+
 function renderProblems() {
   const pb = document.getElementById('problems-body');
   pb.innerHTML = '';
@@ -2443,6 +2562,8 @@ function renderProblems() {
     visible.length === allProblems.length
       ? `${allProblems.length} problems`
       : `${visible.length} of ${allProblems.length} shown`;
+
+  renderActiveFiltersBar(visible.length);
 
   if (visible.length === 0) {
     pb.innerHTML = `<tr><td colspan="7" style="padding:24px;text-align:center;color:var(--muted)">No problems match the current filter.</td></tr>`;
