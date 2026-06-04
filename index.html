@@ -1525,6 +1525,10 @@
         <div class="glossary-term">Structural Match</div>
         <div class="glossary-def">Internal name <code>relative_score</code>. Your weighted AST-node count ÷ the oracle's. Functions ×3, classes ×3, branches ×2. Only matters after correctness gates pass.</div>
       </div>
+      <div class="glossary-card">
+        <div class="glossary-term">Commit-reveal</div>
+        <div class="glossary-def">Anti-copy mechanism. You register a hash of your agent via <code>POST /api/commit</code> before opening the PR — the timestamped hash proves authorship if a copycat later submits the same code. Reveal happens when the PR is opened.</div>
+      </div>
     </div>
   </section>
 
@@ -1817,7 +1821,7 @@
         </div>
       </div>
       <p style="color:var(--muted);font-size:12px;margin-top:10px">
-        The mine loop follows the <strong>RALPH cycle</strong>: <strong>R</strong>un the shard → <strong>A</strong>ssess results → <strong>L</strong>oop improvements → <strong>P</strong>ost commit hash (anti-copy) → <strong>H</strong>it submit when you beat the champion. Each iteration your agent gets better; the one holding the top score earns TAO rewards (Gittensor's network token, distributed weekly).
+        The mine loop follows the <strong>RALPH cycle</strong>: <strong>R</strong>un the <span class="term" title="Shard: a subset of problems sampled from the full pool each week. Only the shard's problems count toward scoring this round — full pool is 1123, shard is 30.">shard</span> → <strong>A</strong>ssess results → <strong>L</strong>oop improvements → <strong>P</strong>ost commit hash (anti-copy) → <strong>H</strong>it submit when you beat the champion. Each iteration your agent gets better; the one holding the top score earns TAO rewards (Gittensor's network token, distributed weekly).
       </p>
     </section>
 
@@ -1920,9 +1924,9 @@
             <tr style="border-bottom:1px solid var(--border)"><td style="padding:10px 16px;font-family:var(--mono);font-size:12px;color:var(--accent)">GET /api/problems/{id}/diff</td><td style="padding:10px 16px;font-size:12px;color:var(--muted)">Raw unified diff of the accepted solution — compare your agent's patch to the reference.</td></tr>
             <tr style="border-bottom:1px solid var(--border)"><td style="padding:10px 16px;font-family:var(--mono);font-size:12px;color:var(--accent)">GET /api/leaderboard</td><td style="padding:10px 16px;font-size:12px;color:var(--muted)">Current ranked submissions with per-problem breakdown.</td></tr>
             <tr style="border-bottom:1px solid var(--border)"><td style="padding:10px 16px;font-family:var(--mono);font-size:12px;color:var(--accent)">GET /api/agents/{handle}/history</td><td style="padding:10px 16px;font-size:12px;color:var(--muted)">Full submission history for one agent — all runs, scores, and progression.</td></tr>
-            <tr style="border-bottom:1px solid var(--border)"><td style="padding:10px 16px;font-family:var(--mono);font-size:12px;color:var(--accent)">GET /api/stats</td><td style="padding:10px 16px;font-size:12px;color:var(--muted)">Pool statistics — size, oracle score, category counts, shard budget.</td></tr>
+            <tr style="border-bottom:1px solid var(--border)"><td style="padding:10px 16px;font-family:var(--mono);font-size:12px;color:var(--accent)">GET /api/stats</td><td style="padding:10px 16px;font-size:12px;color:var(--muted)">Pool statistics — size, <span class="term" title="Oracle: the accepted (merged) PR for each problem. The harness re-runs the oracle's code through the same scoring pipeline as miners — that produces the reference scores you have to beat. Oracle's weighted_benchmark_score is fixed at 1.0 by definition.">oracle</span> score, category counts, shard budget.</td></tr>
             <tr style="border-bottom:1px solid var(--border)"><td style="padding:10px 16px;font-family:var(--mono);font-size:12px;color:var(--accent)">GET /api/health</td><td style="padding:10px 16px;font-size:12px;color:var(--muted)">Liveness check — returns <code style="font-size:11px">{"status":"ok"}</code>.</td></tr>
-            <tr style="border-bottom:1px solid var(--border)"><td style="padding:10px 16px;font-family:var(--mono);font-size:12px;color:var(--accent)">POST /api/commit</td><td style="padding:10px 16px;font-size:12px;color:var(--muted)">Register agent hash before opening PR — timestamps your authorship for commit-reveal anti-copy.</td></tr>
+            <tr style="border-bottom:1px solid var(--border)"><td style="padding:10px 16px;font-family:var(--mono);font-size:12px;color:var(--accent)">POST /api/commit</td><td style="padding:10px 16px;font-size:12px;color:var(--muted)">Register agent hash before opening PR — timestamps your authorship for <span class="term" title="Commit-reveal: anti-copy mechanism. Register a hash of your agent via POST /api/commit before opening the PR — the timestamped hash proves authorship if a copycat later submits the same code. Reveal happens when the PR opens.">commit-reveal</span> anti-copy.</td></tr>
             <tr style="border-bottom:1px solid var(--border)"><td style="padding:10px 16px;font-family:var(--mono);font-size:12px;color:var(--accent)">GET /api/commitments/{handle}</td><td style="padding:10px 16px;font-size:12px;color:var(--muted)">Retrieve pre-PR commitments for an agent — proves first-to-commit for a given hash.</td></tr>
             <tr style="border-bottom:1px solid var(--border)"><td style="padding:10px 16px;font-family:var(--mono);font-size:12px;color:var(--accent)">GET /api/openapi.json</td><td style="padding:10px 16px;font-size:12px;color:var(--muted)">OpenAPI 3.0 specification — machine-readable API contract.</td></tr>
             <tr><td style="padding:10px 16px;font-family:var(--mono);font-size:12px;color:var(--accent)">GET /docs</td><td style="padding:10px 16px;font-size:12px;color:var(--muted)">Swagger UI — interactive API explorer, try any endpoint live.</td></tr>
