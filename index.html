@@ -321,6 +321,7 @@
     .lang-typescript{ background: rgba(210,153,34,0.2); color: #e3b341; }
     .lang-js        { background: rgba(210,153,34,0.2); color: #e3b341; }
     .lang-rust      { background: rgba(206,84,58,0.2); color: #ffa198; }
+    .lang-go        { background: rgba(0,172,215,0.15); color: #59e89c; }
     .lang-jvm       { background: rgba(188,140,255,0.2); color: #d2a8ff; }
     .lang-java      { background: rgba(188,140,255,0.2); color: #d2a8ff; }
     .lang-ruby      { background: rgba(248,81,73,0.15); color: #ff9492; }
@@ -373,9 +374,28 @@
       cursor: pointer;
       transition: all 0.15s;
       white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .lang-chip .chip-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: currentColor; opacity: 0.5; flex-shrink: 0;
     }
     .lang-chip:hover { border-color: var(--accent); color: var(--text); }
     .lang-chip.active { background: var(--accent); border-color: var(--accent); color: #0d1117; font-weight: 600; }
+    .lang-chip[data-cat="python"].active  { background:#79c0ff;border-color:#79c0ff;color:#0d1117 }
+    .lang-chip[data-cat="python"]:hover   { border-color:#79c0ff;color:#79c0ff }
+    .lang-chip[data-cat="typescript"].active { background:#e3b341;border-color:#e3b341;color:#0d1117 }
+    .lang-chip[data-cat="typescript"]:hover  { border-color:#e3b341;color:#e3b341 }
+    .lang-chip[data-cat="rust"].active    { background:#ffa198;border-color:#ffa198;color:#0d1117 }
+    .lang-chip[data-cat="rust"]:hover     { border-color:#ffa198;color:#ffa198 }
+    .lang-chip[data-cat="go"].active      { background:#59e89c;border-color:#59e89c;color:#0d1117 }
+    .lang-chip[data-cat="go"]:hover       { border-color:#59e89c;color:#59e89c }
+    .lang-chip[data-cat="jvm"].active     { background:#d2a8ff;border-color:#d2a8ff;color:#0d1117 }
+    .lang-chip[data-cat="jvm"]:hover      { border-color:#d2a8ff;color:#d2a8ff }
+    .lang-chip[data-cat="ruby"].active    { background:#ff9492;border-color:#ff9492;color:#0d1117 }
+    .lang-chip[data-cat="ruby"]:hover     { border-color:#ff9492;color:#ff9492 }
 
     /* ── Chart ───────────────────────────────────────────── */
     .chart-wrap {
@@ -872,8 +892,11 @@
       border: 1px solid var(--border);
       border-radius: 8px;
       padding: 14px 16px;
+      transition: border-color 0.15s, background 0.15s;
+      cursor: default;
     }
     .model-card:first-child { border-color: var(--accent); }
+    .model-card:hover { border-color: var(--accent); background: #161b22; }
     .model-card .mc-name { font-family: var(--mono); font-size: 13px; color: var(--text); font-weight: 600; }
     .model-card .mc-provider { font-size: 11px; color: var(--muted); margin: 2px 0 6px; }
     .model-card .mc-cost { font-size: 11px; color: var(--green); }
@@ -1219,12 +1242,12 @@
     <div class="filter-row">
       <input type="text" class="search-input" id="problem-search" placeholder="Search by title or repo…" />
       <button class="lang-chip active" data-cat="">All</button>
-      <button class="lang-chip" data-cat="python">Python</button>
-      <button class="lang-chip" data-cat="typescript">TypeScript</button>
-      <button class="lang-chip" data-cat="rust">Rust</button>
-      <button class="lang-chip" data-cat="go">Go</button>
-      <button class="lang-chip" data-cat="jvm">JVM</button>
-      <button class="lang-chip" data-cat="ruby">Ruby</button>
+      <button class="lang-chip" data-cat="python"><span class="chip-dot" style="background:#79c0ff"></span>Python</button>
+      <button class="lang-chip" data-cat="typescript"><span class="chip-dot" style="background:#e3b341"></span>TypeScript</button>
+      <button class="lang-chip" data-cat="rust"><span class="chip-dot" style="background:#ffa198"></span>Rust</button>
+      <button class="lang-chip" data-cat="go"><span class="chip-dot" style="background:#59e89c"></span>Go</button>
+      <button class="lang-chip" data-cat="jvm"><span class="chip-dot" style="background:#d2a8ff"></span>JVM</button>
+      <button class="lang-chip" data-cat="ruby"><span class="chip-dot" style="background:#ff9492"></span>Ruby</button>
     </div>
     <div class="table-wrap">
       <table id="problems-table">
@@ -1905,20 +1928,31 @@ async function load() {
     if (langBars && globalData.categories) {
       const cats = globalData.categories;
       const total = Object.values(cats).reduce((s, v) => s + v, 0) || 1;
+      const maxCount = Math.max(...Object.values(cats));
       const catColors = { python: '#79c0ff', typescript: '#e3b341', rust: '#ffa198', go: '#59e89c', jvm: '#d2a8ff', ruby: '#ff9492' };
+      const catGradients = {
+        python:     'linear-gradient(90deg,#3d6b00,#7bc350)',
+        typescript: 'linear-gradient(90deg,#1a5296,#3b82f6)',
+        rust:       'linear-gradient(90deg,#7a2a00,#e25822)',
+        go:         'linear-gradient(90deg,#00566e,#00acd7)',
+        jvm:        'linear-gradient(90deg,#6b4400,#d97706)',
+        ruby:       'linear-gradient(90deg,#7a0026,#e11d48)',
+      };
       const catFull = { python: 'Python', typescript: 'TypeScript', rust: 'Rust', go: 'Go', jvm: 'JVM', ruby: 'Ruby' };
       Object.entries(cats).sort((a, b) => b[1] - a[1]).forEach(([cat, count]) => {
-        const pct = (count / total * 100).toFixed(1);
+        const pct = (count / maxCount * 100).toFixed(1);
+        const poolPct = (count / total * 100).toFixed(1);
         const color = catColors[cat] || '#8b949e';
+        const gradient = catGradients[cat] || `linear-gradient(90deg,#1f6feb,#58a6ff)`;
         const row = document.createElement('div');
         row.style.cssText = 'display:flex;align-items:center;gap:12px;font-size:13px';
         row.innerHTML = `
           <span style="width:90px;color:${color};font-weight:600;font-size:12px">${catFull[cat] || cat}</span>
           <div style="flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden">
-            <div style="height:100%;width:${pct}%;background:${color};border-radius:3px;transition:width 0.5s"></div>
+            <div style="height:100%;width:${pct}%;background:${gradient};border-radius:3px;transition:width 0.5s"></div>
           </div>
           <span style="width:55px;text-align:right;color:var(--muted);font-family:var(--mono);font-size:12px">${count}</span>
-          <span style="width:44px;text-align:right;color:var(--muted);font-size:11px">${pct}%</span>
+          <span style="width:44px;text-align:right;color:var(--muted);font-size:11px">${poolPct}%</span>
         `;
         langBars.appendChild(row);
       });
@@ -2500,21 +2534,46 @@ function initScoringPage() {
     });
   }
 
-  // Repo breakdown
+  // Repo breakdown — color bars by dominant language
   const repos = d.repos || {};
   const totalProblems = d.pool_size;
   const maxCount = Math.max(...Object.values(repos));
   const rb = document.getElementById('repo-breakdown');
   const reposCountEl = document.getElementById('repos-count');
   if (reposCountEl) reposCountEl.textContent = `${Object.keys(repos).length} repos`;
+
+  // Compute dominant language per repo from allProblems
+  const repoLangCounts = {};
+  (allProblems || []).forEach(p => {
+    if (!p.repo) return;
+    if (!repoLangCounts[p.repo]) repoLangCounts[p.repo] = {};
+    const cat = p.category || 'other';
+    repoLangCounts[p.repo][cat] = (repoLangCounts[p.repo][cat] || 0) + 1;
+  });
+  const repoLang = {};
+  Object.entries(repoLangCounts).forEach(([repo, counts]) => {
+    repoLang[repo] = Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] || 'other';
+  });
+  const langGradients = {
+    python:     'linear-gradient(90deg,#3d6b00,#7bc350)',
+    typescript: 'linear-gradient(90deg,#1a5296,#3b82f6)',
+    rust:       'linear-gradient(90deg,#7a2a00,#e25822)',
+    go:         'linear-gradient(90deg,#00566e,#00acd7)',
+    jvm:        'linear-gradient(90deg,#6b4400,#d97706)',
+    ruby:       'linear-gradient(90deg,#7a0026,#e11d48)',
+    other:      'linear-gradient(90deg,#1f6feb,#58a6ff)',
+  };
+
   Object.entries(repos).sort((a, b) => b[1] - a[1]).forEach(([repo, count]) => {
     const pct = (count / maxCount * 100).toFixed(0);
     const poolPct = totalProblems > 0 ? ((count / totalProblems) * 100).toFixed(0) : 0;
+    const lang = repoLang[repo] || 'other';
+    const gradient = langGradients[lang] || langGradients.other;
     const div = document.createElement('div');
     div.className = 'repo-row';
     div.innerHTML = `
       <span class="repo-name"><a href="https://github.com/${repo}" target="_blank">${repo}</a></span>
-      <div class="repo-bar-wrap"><div class="repo-bar-fill" style="width:${pct}%"></div></div>
+      <div class="repo-bar-wrap"><div class="repo-bar-fill" style="width:${pct}%;background:${gradient}"></div></div>
       <span class="repo-count">${count}</span>
       <span class="repo-pct">${poolPct}%</span>
     `;
@@ -2533,7 +2592,7 @@ function initMiningPage() {
   const modelMeta = {
     'deepseek/deepseek-chat': { label: 'DeepSeek V3', cost: '~$0.27/$1.10 per M tokens', note: 'Default — strong general coding' },
     'deepseek/deepseek-v4-flash': { label: 'DeepSeek V4 Flash', cost: '~$0.10/$0.20 per M tokens', note: 'Next-gen fast variant' },
-    'openai/gpt-4o-mini': { label: 'GPT-4o-mini', cost: '$0.15/$0.60 per M tokens', note: 'OpenAI GPT-4o-class' },
+    'openai/gpt-4o-mini': { label: 'GPT-4o-mini', cost: '~$0.15/$0.60 per M tokens', note: 'OpenAI GPT-4o-class' },
     'google/gemini-2.5-flash-lite': { label: 'Gemini 2.5 Flash Lite', cost: '~$0.10/$0.40 per M tokens', note: 'Fastest + cheapest' },
     'qwen/qwen-2.5-coder-32b-instruct': { label: 'Qwen 2.5 Coder 32B', cost: 'Free tier available', note: 'Open-weight coding specialist' },
   };
