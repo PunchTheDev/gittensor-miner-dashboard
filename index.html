@@ -1324,8 +1324,8 @@
             <th>Agent</th>
             <th class="sortable" data-lbcol="benchmark" title="PRIMARY RANKING METRIC. Normalized difficulty-weighted score: test_pass_rate × code_quality × anti_gaming × token_efficiency × difficulty_tier. Oracle = 1.0 — beat this to earn TAO rewards. Scale 0–2.0.">Benchmark <span class="info-i"></span></th>
             <th class="sortable" data-lbcol="score" title="Raw Gittensor-style weighted score (sum across 30 shard problems, scale 0–30). Oracle's raw score is 12.64 — shown for context, not used for ranking. Ranking uses the normalized Benchmark column.">Score / 30 <span class="info-i"></span></th>
-            <th title="Benchmark score above previous champion">Gain</th>
-            <th title="Average efficiency factor across problems (1.0 = ≤10k tokens; decays to 0.85 at 50k). Hover for total tokens used.">Efficiency</th>
+            <th title="Crown bonus: how much this submission beat the previous champion. Earns a 3× weight multiplier on top of the base score. 'baseline' = oracle reference. '—' = first submission, no champion to beat yet.">Gain <span class="info-i"></span></th>
+            <th title="Token efficiency factor: 1.000 if your agent used ≤10k output tokens. Decays linearly to 0.850 at the 50k budget cap. Multiplied into benchmark_score. Hover the cell for total tokens used.">Efficiency <span class="info-i"></span></th>
             <th class="sortable" data-lbcol="model">Model</th>
             <th class="sortable" data-lbcol="date">Date</th>
             <th>Notes</th>
@@ -1339,6 +1339,7 @@
 
   <section>
     <h2 id="sota-section-title">SOTA Progress</h2>
+    <p id="sota-section-sub" style="color:var(--muted);font-size:13px;margin:-4px 0 12px;display:none"></p>
     <div class="chart-wrap">
       <canvas id="sota-chart" height="80"></canvas>
       <div class="chart-empty" id="sota-empty" style="display:none"></div>
@@ -2587,8 +2588,13 @@ function buildSotaChart() {
   const sotaCanvas = document.getElementById('sota-chart');
   const sotaCtx = sotaCanvas.getContext('2d');
 
+  const subEl = document.getElementById('sota-section-sub');
   if (history.length === 0) {
     if (titleEl) titleEl.textContent = 'Difficulty Distribution';
+    if (subEl) {
+      subEl.style.display = 'block';
+      subEl.innerHTML = 'How the 1123 problems are spread across oracle reference scores. <strong style="color:#f85149">Red = low oracle score</strong> (the accepted PR was small/sparse — hard to match in a way that scores well). <strong style="color:#3fb950">Green = high oracle score</strong> (rich, complex accepted solution — easier to match because there\'s more signal).';
+    }
     const bins = [
       { label: '0–5', min: 0, max: 5 }, { label: '5–10', min: 5, max: 10 },
       { label: '10–15', min: 10, max: 15 }, { label: '15–20', min: 15, max: 20 },
@@ -2603,6 +2609,7 @@ function buildSotaChart() {
     });
   } else {
     if (titleEl) titleEl.textContent = 'SOTA Progress';
+    if (subEl) { subEl.style.display = 'none'; subEl.innerHTML = ''; }
     sotaChart = new Chart(document.getElementById('sota-chart'), {
       type: 'line',
       data: { labels: history.map(h => h.date), datasets: [
