@@ -628,9 +628,22 @@
     }
     .repo-row .repo-active-badge::before { content: "● "; }
     .repo-row.is-active:hover .repo-active-badge { display: none; }
-    .repo-name { min-width: 210px; }
+    .repo-name { min-width: 210px; display: inline-flex; align-items: center; gap: 8px; }
     .repo-name a { color: var(--accent); font-family: var(--mono); font-size: 12px; text-decoration: none; }
     .repo-name a:hover { text-decoration: underline; }
+    /* Top-3 heavy-hitter rank chips — bolder name + colored rank badge */
+    .repo-rank {
+      display: inline-block;
+      font-family: var(--mono); font-size: 10px; font-weight: 700;
+      letter-spacing: 0.5px; padding: 1px 6px;
+      border: 1px solid transparent; border-radius: 3px;
+      flex-shrink: 0;
+    }
+    .repo-rank.rank-1 { color: #d29922; background: rgba(210,153,34,0.18); border-color: rgba(210,153,34,0.45); }
+    .repo-rank.rank-2 { color: #c9d1d9; background: rgba(201,209,217,0.10); border-color: rgba(201,209,217,0.30); }
+    .repo-rank.rank-3 { color: #c08c5d; background: rgba(192,140,93,0.15); border-color: rgba(192,140,93,0.40); }
+    .repo-row[data-rank] .repo-name a { font-weight: 600; }
+    .repo-row[data-rank] .repo-count { color: var(--text); font-weight: 600; }
     .repo-bar-wrap { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
     .repo-bar-fill { height: 100%; background: linear-gradient(90deg, #1f6feb, #58a6ff); border-radius: 3px; transition: width 0.6s; }
     .repo-count { color: var(--muted); font-size: 12px; min-width: 30px; text-align: right; font-family: var(--mono); }
@@ -4422,23 +4435,26 @@ function initScoringPage() {
     cap.id = 'repo-breakdown-caption';
     cap.className = 'repo-breakdown-caption';
     cap.innerHTML = `
-      <div class="rbc-left"><strong>${Object.keys(repos).length}</strong> repos · <strong>${totalProblems.toLocaleString()}</strong> problems · bars colored by dominant language</div>
+      <div class="rbc-left"><strong>${Object.keys(repos).length}</strong> repos · <strong>${totalProblems.toLocaleString()}</strong> problems · sorted by share · top 3 ranked · bars colored by dominant language</div>
       <div class="rbc-right">Click any repo to filter the Problems page →</div>
     `;
     rb.parentNode.insertBefore(cap, rb);
   }
 
-  Object.entries(repos).sort((a, b) => b[1] - a[1]).forEach(([repo, count]) => {
+  Object.entries(repos).sort((a, b) => b[1] - a[1]).forEach(([repo, count], idx) => {
     const pct = (count / maxCount * 100).toFixed(0);
     const poolPct = totalProblems > 0 ? ((count / totalProblems) * 100).toFixed(0) : 0;
     const lang = repoLang[repo] || 'other';
     const gradient = langGradients[lang] || langGradients.other;
+    const rank = idx < 3 ? (idx + 1) : null;
+    const rankChip = rank ? `<span class="repo-rank rank-${rank}" title="Rank #${rank} by problem count — heaviest contributor to the pool">#${rank}</span>` : '';
     const div = document.createElement('div');
     div.className = 'repo-row';
     div.dataset.repo = repo;
-    div.title = `Click to filter the Problems page to ${repo} (${count} problems)`;
+    if (rank) div.dataset.rank = String(rank);
+    div.title = `${rank ? `Rank #${rank} — ` : ''}Click to filter the Problems page to ${repo} (${count} problems)`;
     div.innerHTML = `
-      <span class="repo-name"><a href="https://github.com/${repo}" target="_blank" onclick="event.stopPropagation()">${repo}</a></span>
+      <span class="repo-name">${rankChip}<a href="https://github.com/${repo}" target="_blank" onclick="event.stopPropagation()">${repo}</a></span>
       <div class="repo-bar-wrap"><div class="repo-bar-fill" style="width:${pct}%;background:${gradient}"></div></div>
       <span class="repo-count">${count}</span>
       <span class="repo-pct">${poolPct}%</span>
