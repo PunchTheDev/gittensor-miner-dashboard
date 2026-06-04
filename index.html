@@ -1079,6 +1079,27 @@
       0%,100% { box-shadow: 0 0 0 0 rgba(88,166,255,0.40); }
       50%     { box-shadow: 0 0 0 4px rgba(88,166,255,0.00); }
     }
+    /* Locked pill — always visible, muted, no pulse. Used for tqf (no slider). */
+    .fs-live-pill.fs-pill-locked {
+      display: inline-flex;
+      background: rgba(125,133,144,0.14);
+      color: var(--muted);
+      border-color: var(--border);
+      animation: none;
+      cursor: help;
+    }
+    .fs-live-pill.fs-pill-locked::before {
+      content: '🔒';
+      margin-right: 4px;
+      opacity: 0.7;
+      font-size: 9px;
+    }
+    .fs-row.fs-calc-active .fs-live-pill.fs-pill-locked {
+      background: rgba(125,133,144,0.14);
+      color: var(--muted);
+      border-color: var(--border);
+      animation: none;
+    }
     /* Calc → formula breadcrumb caption */
     .calc-formula-link {
       display: flex; align-items: center; justify-content: space-between;
@@ -1163,6 +1184,29 @@
     .calc-slider { width: 100%; appearance: none; height: 4px; border-radius: 2px; background: var(--border); outline: none; cursor: pointer; }
     .calc-slider::-webkit-slider-thumb { appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--accent); cursor: pointer; }
     .calc-hint { font-size: 11px; color: var(--muted); line-height: 1.5; margin-top: 4px; }
+    /* Read-only tqf tile — distinct from slider rows */
+    .calc-row-readonly {
+      background: var(--surface2);
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 18px;
+    }
+    .calc-row-readonly .crr-head {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 8px; margin-bottom: 4px;
+    }
+    .calc-row-readonly .crr-title { font-size: 12px; font-family: var(--mono); color: var(--muted); font-weight: 600; }
+    .calc-row-readonly .crr-title strong { color: var(--text); font-weight: 700; }
+    .calc-row-readonly .crr-chip {
+      font-family: var(--mono); font-size: 11px; font-weight: 600;
+      padding: 2px 8px; border-radius: 999px;
+      background: rgba(125,133,144,0.14); color: var(--muted);
+      border: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    .calc-row-readonly .crr-chip::before { content: '🔒'; margin-right: 4px; opacity: 0.7; font-size: 9px; }
+    .calc-row-readonly .crr-hint { font-size: 11px; color: var(--muted); line-height: 1.5; }
     .tier-btn { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 4px 10px; font-size: 12px; color: var(--muted); cursor: pointer; transition: all 0.15s; }
     .tier-btn.active { background: rgba(88,166,255,0.12); border-color: var(--accent); color: var(--accent); font-weight: 600; }
 
@@ -1854,7 +1898,7 @@
         <a class="fs-row" href="#mc-test-pass-rate" onclick="event.preventDefault(); document.getElementById('mc-test-pass-rate')?.scrollIntoView({behavior:'smooth',block:'start'}); history.replaceState(null,'','#mc-test-pass-rate');"><span class="fs-op"></span><span class="fs-var"><span class="term" title="Fraction of unit tests passing on your patch — the primary correctness gate.">test_pass_rate</span></span><span class="fs-note">correctness gate · 0.0–1.0 · fraction of repo tests passing</span><span class="fs-jump">Details ↓</span><span class="fs-live-pill" data-pill="tpr"></span></a>
         <a class="fs-row" href="#mc-relative-score" onclick="event.preventDefault(); document.getElementById('mc-relative-score')?.scrollIntoView({behavior:'smooth',block:'start'}); history.replaceState(null,'','#mc-relative-score');"><span class="fs-op">×</span><span class="fs-var"><span class="term" title="Structural Match: your weighted AST node count vs the oracle's. 1.0 = on par.">relative_score</span></span><span class="fs-note">Structural Match vs oracle · 0.0–~2.0 · weighted AST node ratio</span><span class="fs-jump">Details ↓</span><span class="fs-live-pill" data-pill="rel"></span></a>
         <a class="fs-row" href="#mc-anti-gaming" onclick="event.preventDefault(); document.getElementById('mc-anti-gaming')?.scrollIntoView({behavior:'smooth',block:'start'}); history.replaceState(null,'','#mc-anti-gaming');"><span class="fs-op">×</span><span class="fs-var"><span class="term" title="Anti-Gaming: penalty for deleting test assertions. Floors at 0.5.">anti_gaming_multiplier</span></span><span class="fs-note">Anti-Gaming penalty · 0.5–1.0 · stops you from deleting assertions to win</span><span class="fs-jump">Details ↓</span><span class="fs-live-pill" data-pill="ag"></span></a>
-        <a class="fs-row" href="#mc-test-quality" onclick="event.preventDefault(); document.getElementById('mc-test-quality')?.scrollIntoView({behavior:'smooth',block:'start'}); history.replaceState(null,'','#mc-test-quality');"><span class="fs-op">×</span><span class="fs-var"><span class="term" title="tqf: hidden/edge-test bonus signal.">test_quality_factor</span></span><span class="fs-note">tqf · ~0.8–1.2 · hidden/edge test bonus</span><span class="fs-jump">Details ↓</span><span class="fs-live-pill" data-pill="tqf"></span></a>
+        <a class="fs-row" href="#mc-test-quality" onclick="event.preventDefault(); document.getElementById('mc-test-quality')?.scrollIntoView({behavior:'smooth',block:'start'}); history.replaceState(null,'','#mc-test-quality');"><span class="fs-op">×</span><span class="fs-var"><span class="term" title="tqf: hidden/edge-test bonus signal.">test_quality_factor</span></span><span class="fs-note">tqf · ~0.8–1.2 · hidden/edge test bonus</span><span class="fs-jump">Details ↓</span><span class="fs-live-pill fs-pill-locked" data-pill="tqf" title="Hidden test bonus — fixed at 1.0 in the calculator; varies ~0.85–1.2 in real evals">1.0</span></a>
         <a class="fs-row" href="#mc-efficiency" onclick="event.preventDefault(); document.getElementById('mc-efficiency')?.scrollIntoView({behavior:'smooth',block:'start'}); history.replaceState(null,'','#mc-efficiency');"><span class="fs-op">×</span><span class="fs-var"><span class="term" title="Efficiency: output-token budget decay (free ≤10k, 0.85 at 50k cap).">efficiency_factor</span></span><span class="fs-note">cost efficiency · 0.85–1.0 · output-token budget decay</span><span class="fs-jump">Details ↓</span><span class="fs-live-pill" data-pill="eff"></span></a>
         <div class="fs-divider"></div>
         <div class="fs-head"><span class="formula-key">weighted_benchmark_score</span><span class="fs-eq">=</span><span style="color:var(--muted);font-family:var(--font);font-size:11px">pool-level weighted average of benchmark_score</span></div>
@@ -1897,6 +1941,13 @@
           <label class="calc-label">Output Tokens <span style="font-family:var(--mono);font-size:10px;color:var(--muted)">efficiency</span> <span class="calc-val" id="cv-eff">0</span></label>
           <input type="range" class="calc-slider" id="sl-eff" min="0" max="50000" value="0" step="500">
           <div class="calc-hint">Tokens your agent generated. Free up to 10k. Efficiency decays 1.0→0.85 as tokens approach the 50k budget.</div>
+        </div>
+        <div class="calc-row-readonly" id="calc-tqf-tile">
+          <div class="crr-head">
+            <span class="crr-title"><strong>Test Quality</strong> test_quality_factor</span>
+            <span class="crr-chip" title="Hidden test bonus — locked at 1.0 in the calculator; varies ~0.85–1.2 in real evals">1.000 · locked</span>
+          </div>
+          <div class="crr-hint">Hidden/edge-test bonus. Measured only in production when your patch is graded against the hidden test suite — there's no slider here because nothing the miner controls feeds it. Locked at 1.0 in the calculator; varies ~0.85–1.2 in real evals.</div>
         </div>
         <div class="calc-row">
           <label class="calc-label">difficulty tier</label>
@@ -3473,6 +3524,8 @@ function initScoreCalc() {
     const v = currentFactorValues();
     v.weight = tierWeight;
     document.querySelectorAll('.fs-live-pill[data-pill]').forEach(p => {
+      // Locked pills are static (no slider feeds them) — skip refresh.
+      if (p.classList.contains('fs-pill-locked')) return;
       const k = p.dataset.pill;
       if (v[k] === undefined) return;
       if (k === 'weight') {
