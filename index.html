@@ -1026,6 +1026,18 @@
     .model-card .mc-name { font-family: var(--mono); font-size: 13px; color: var(--text); font-weight: 600; }
     .model-card .mc-provider { font-size: 11px; color: var(--muted); margin: 2px 0 6px; }
     .model-card .mc-cost { font-size: 11px; color: var(--green); }
+    .model-card .mc-badges { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+    .mc-badge {
+      display: inline-block;
+      border-radius: 3px;
+      padding: 1px 6px;
+      font-size: 10px;
+      font-family: var(--mono);
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+    .mc-badge-ctx { background: rgba(88,166,255,0.12); color: var(--accent); }
+    .mc-badge-strength { background: rgba(188,140,255,0.18); color: var(--purple); }
     .mining-step-grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
@@ -3069,11 +3081,11 @@ function initMiningPage() {
   if (countEl) countEl.textContent = `${models.length} curated`;
 
   const modelMeta = {
-    'deepseek/deepseek-chat': { label: 'DeepSeek V3', cost: '~$0.27/$1.10 per M tokens', note: 'Default — strong general coding' },
-    'deepseek/deepseek-v4-flash': { label: 'DeepSeek V4 Flash', cost: '~$0.10/$0.20 per M tokens', note: 'Next-gen fast variant' },
-    'openai/gpt-4o-mini': { label: 'GPT-4o-mini', cost: '~$0.15/$0.60 per M tokens', note: 'OpenAI GPT-4o-class' },
-    'google/gemini-2.5-flash-lite': { label: 'Gemini 2.5 Flash Lite', cost: '~$0.10/$0.40 per M tokens', note: 'Fastest + cheapest' },
-    'qwen/qwen-2.5-coder-32b-instruct': { label: 'Qwen 2.5 Coder 32B', cost: '~$0.07/$0.07 per M tokens', note: 'Open-weight coding specialist' },
+    'deepseek/deepseek-chat':           { label: 'DeepSeek V3',          cost: '~$0.27/$1.10 per M tokens', note: 'Default — strong general coding',  ctx: '128k ctx', strength: 'Coding + reasoning' },
+    'deepseek/deepseek-v4-flash':       { label: 'DeepSeek V4 Flash',    cost: '~$0.10/$0.20 per M tokens', note: 'Next-gen fast variant',            ctx: '128k ctx', strength: 'Fast inference' },
+    'openai/gpt-4o-mini':               { label: 'GPT-4o-mini',          cost: '~$0.15/$0.60 per M tokens', note: 'OpenAI GPT-4o-class',              ctx: '128k ctx', strength: 'General-purpose' },
+    'google/gemini-2.5-flash-lite':     { label: 'Gemini 2.5 Flash Lite',cost: '~$0.10/$0.40 per M tokens', note: 'Fastest + cheapest',               ctx: '1M ctx',   strength: 'Long-context' },
+    'qwen/qwen-2.5-coder-32b-instruct': { label: 'Qwen 2.5 Coder 32B',   cost: '~$0.07/$0.07 per M tokens', note: 'Open-weight coding specialist',    ctx: '32k ctx',  strength: 'Coding specialist' },
   };
 
   models.forEach((m, i) => {
@@ -3088,7 +3100,8 @@ function initMiningPage() {
       <div class="mc-provider">${esc(provider)} · <span style="font-family:var(--mono);font-size:10px;color:var(--muted)">${esc(modelSlug)}</span></div>
       <div class="mc-cost" title="Cost per million tokens — input / output">${esc(meta.cost || '')}</div>
       ${meta.note ? `<div style="font-size:11px;color:var(--muted);margin-top:4px">${esc(meta.note)}</div>` : ''}
-      ${i === 0 ? '<div style="font-size:10px;color:var(--accent);margin-top:4px">✓ recommended default</div>' : ''}
+      ${(meta.ctx || meta.strength) ? `<div class="mc-badges">${meta.ctx ? `<span class="mc-badge mc-badge-ctx" title="Maximum context window">${esc(meta.ctx)}</span>` : ''}${meta.strength ? `<span class="mc-badge mc-badge-strength" title="What this model is best at">${esc(meta.strength)}</span>` : ''}</div>` : ''}
+      ${i === 0 ? '<div style="font-size:10px;color:var(--accent);margin-top:6px">✓ recommended default</div>' : ''}
     `;
     grid.appendChild(card);
   });
