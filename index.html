@@ -611,6 +611,23 @@
     }
     .repo-row:hover .repo-jump { opacity: 1; }
     .repo-row:hover .repo-pct { opacity: 0; }
+    /* aria-current: this row's repo equals the active Problems search filter */
+    .repo-row.is-active {
+      background: rgba(88,166,255,0.10);
+      border-left-color: var(--accent);
+    }
+    .repo-row.is-active .repo-pct { opacity: 0; }
+    .repo-row.is-active .repo-active-badge { display: inline-block; }
+    .repo-row .repo-active-badge {
+      display: none;
+      position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+      font-size: 10px; color: var(--accent); background: rgba(88,166,255,0.22);
+      border: 1px solid var(--accent); border-radius: 3px;
+      padding: 1px 6px; letter-spacing: 0.5px; text-transform: uppercase;
+      font-weight: 600;
+    }
+    .repo-row .repo-active-badge::before { content: "● "; }
+    .repo-row.is-active:hover .repo-active-badge { display: none; }
     .repo-name { min-width: 210px; }
     .repo-name a { color: var(--accent); font-family: var(--mono); font-size: 12px; text-decoration: none; }
     .repo-name a:hover { text-decoration: underline; }
@@ -2998,6 +3015,9 @@ function setPage(name, pushHistory = false) {
   if (pushHistory) {
     history.pushState(null, '', `#/${name}`);
   }
+  if (name === 'scoring' && typeof window.updatePoolActiveRow === 'function') {
+    window.updatePoolActiveRow();
+  }
   // Lazy-init pages that need it
   if (name === 'problems' && !document.getElementById('problems-body').dataset.init) {
     // Pre-fetch shard to show ⚡ indicators on problems in the current eval round
@@ -3408,6 +3428,7 @@ async function load() {
       probPage = 1;
       document.getElementById('problems-body').dataset.init = '';
       renderProblems();
+      if (typeof window.updatePoolActiveRow === 'function') window.updatePoolActiveRow();
     }, 150));
     document.querySelectorAll('#page-problems th.sortable').forEach(th => {
       th.addEventListener('click', () => {
@@ -4396,6 +4417,7 @@ function initScoringPage() {
       <span class="repo-count">${count}</span>
       <span class="repo-pct">${poolPct}%</span>
       <span class="repo-jump">→ Filter</span>
+      <span class="repo-active-badge" title="The Problems page is currently filtered to this repo">filtering</span>
     `;
     div.addEventListener('click', () => {
       const search = document.getElementById('problem-search');
@@ -4415,6 +4437,19 @@ function initScoringPage() {
     });
     rb.appendChild(div);
   });
+
+  // Sync .is-active state on .repo-row whose dataset.repo equals the current Problems search filter.
+  // Same-repo visual continuity between Problems search and Scoring Pool Composition.
+  window.updatePoolActiveRow = function() {
+    const searchEl = document.getElementById('problem-search');
+    const q = ((searchEl && searchEl.value) || '').trim().toLowerCase();
+    document.querySelectorAll('#repo-breakdown .repo-row').forEach(row => {
+      const match = q && row.dataset.repo && row.dataset.repo.toLowerCase() === q;
+      row.classList.toggle('is-active', !!match);
+      if (match) row.setAttribute('aria-current', 'true'); else row.removeAttribute('aria-current');
+    });
+  };
+  window.updatePoolActiveRow();
 
   // Anti-Copy: wire the LIVE row + caption to current SOTA from leaderboard
   const realLb = (allLeaderboard || []).filter(r => r.rank !== null && r.weighted_benchmark_score != null);
